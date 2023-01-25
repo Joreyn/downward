@@ -16,7 +16,7 @@ shared_ptr<PatternDatabase> get_pdb_from_options(const shared_ptr<AbstractTask> 
     shared_ptr<PatternGenerator> pattern_generator =
         opts.get<shared_ptr<PatternGenerator>>("pattern");
     PatternInformation pattern_info = pattern_generator->generate(task);
-    return pattern_info.get_pdb();
+    return pattern_info.get_pdb(opts.get<PDBType>("pdb_type"));
 }
 
 PDBHeuristic::PDBHeuristic(const plugins::Options &opts)
@@ -41,6 +41,15 @@ static shared_ptr<Heuristic> _parse(OptionParser &parser) {
             "pattern generation method",
             "greedy()");
         Heuristic::add_options_to_parser(parser);
+
+        vector<pair<string, string>> enum_info;
+        enum_info.emplace_back("explicit", "explicit PDB");
+        enum_info.emplace_back("bdd", "BDD PDB");
+        enum_info.emplace_back("evmdd", "EVMDD PDB");
+        parser.add_enum_option<PDBType>(
+            "pdb_type",
+            enum_info,
+            "PDB type");
 
         parser.document_language_support("action costs", "supported");
         parser.document_language_support("conditional effects", "not supported");

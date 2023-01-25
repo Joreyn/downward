@@ -5,6 +5,11 @@
 #include <vector>
 
 namespace pdbs {
+enum class PDBType {
+    Explicit,
+    BDD,
+    EVMDD
+};
 class PatternDatabase;
 using Pattern = std::vector<int>;
 using PatternCollection = std::vector<Pattern>;

@@ -27,6 +27,7 @@ class PatternCollectionGenerator {
     virtual PatternCollectionInformation compute_patterns(
         const std::shared_ptr<AbstractTask> &task) = 0;
 protected:
+    PDBType pdb_type;
     mutable utils::LogProxy log;
 public:
     explicit PatternCollectionGenerator(const plugins::Options &opts);
@@ -41,6 +42,7 @@ class PatternGenerator {
     virtual PatternInformation compute_pattern(
         const std::shared_ptr<AbstractTask> &task) = 0;
 protected:
+    PDBType pdb_type;
     mutable utils::LogProxy log;
 public:
     explicit PatternGenerator(const plugins::Options &opts);

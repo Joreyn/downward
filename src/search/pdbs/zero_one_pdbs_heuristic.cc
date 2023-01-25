@@ -18,7 +18,7 @@ ZeroOnePDBs get_zero_one_pdbs_from_options(
     shared_ptr<PatternCollection> patterns =
         pattern_collection_info.get_patterns();
     TaskProxy task_proxy(*task);
-    return ZeroOnePDBs(task_proxy, *patterns);
+    return ZeroOnePDBs(task_proxy, *patterns, opts.get<PDBType>("pdb_type"));
 }
 
 ZeroOnePDBsHeuristic::ZeroOnePDBsHeuristic(

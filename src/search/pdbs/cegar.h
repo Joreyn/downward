@@ -43,6 +43,7 @@ extern PatternCollectionInformation generate_pattern_collection_with_cegar(
     utils::LogProxy &log,
     const std::shared_ptr<utils::RandomNumberGenerator> &rng,
     const std::shared_ptr<AbstractTask> &task,
+    PDBType pdb_type,
     const std::vector<FactPair> &goals,
     std::unordered_set<int> &&blacklisted_variables = std::unordered_set<int>());
 
@@ -58,6 +59,7 @@ extern PatternInformation generate_pattern_with_cegar(
     utils::LogProxy &log,
     const std::shared_ptr<utils::RandomNumberGenerator> &rng,
     const std::shared_ptr<AbstractTask> &task,
+    PDBType pdb_type,
     const FactPair &goal,
     std::unordered_set<int> &&blacklisted_variables = std::unordered_set<int>());
 

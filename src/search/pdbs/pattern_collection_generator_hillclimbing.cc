@@ -159,7 +159,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     */
                     generated_patterns.insert(new_pattern);
                     candidate_pdbs.push_back(
-                        make_shared<PatternDatabase>(task_proxy, new_pattern));
+                        compute_pdb(pdb_type, task_proxy, new_pattern));
                     max_pdb_size = max(max_pdb_size,
                                        candidate_pdbs.back()->get_size());
                 }
@@ -445,7 +445,7 @@ PatternCollectionInformation PatternCollectionGeneratorHillclimbing::compute_pat
         initial_pattern_collection.emplace_back(1, goal_var_id);
     }
     current_pdbs = utils::make_unique_ptr<IncrementalCanonicalPDBs>(
-        task_proxy, initial_pattern_collection);
+        task_proxy, pdb_type, initial_pattern_collection);
     if (log.is_at_least_normal()) {
         log << "Done calculating initial pattern collection: " << timer << endl;
     }

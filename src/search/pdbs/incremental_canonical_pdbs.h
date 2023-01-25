@@ -12,6 +12,7 @@
 namespace pdbs {
 class IncrementalCanonicalPDBs {
     TaskProxy task_proxy;
+    PDBType pdb_type;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pattern_databases;
@@ -29,6 +30,7 @@ class IncrementalCanonicalPDBs {
     void recompute_pattern_cliques();
 public:
     IncrementalCanonicalPDBs(const TaskProxy &task_proxy,
+                             PDBType pdb_type,
                              const PatternCollection &intitial_patterns);
     virtual ~IncrementalCanonicalPDBs() = default;
 

@@ -86,6 +86,7 @@ class CEGAR {
     utils::LogProxy &log;
     shared_ptr<utils::RandomNumberGenerator> rng;
     const shared_ptr<AbstractTask> &task;
+    PDBType pdb_type;
     const TaskProxy task_proxy;
     const vector<FactPair> &goals;
     unordered_set<int> blacklisted_variables;
@@ -153,6 +154,7 @@ public:
         utils::LogProxy &log,
         const shared_ptr<utils::RandomNumberGenerator> &rng,
         const shared_ptr<AbstractTask> &task,
+        PDBType pdb_type,
         const vector<FactPair> &goals,
         unordered_set<int> &&blacklisted_variables = unordered_set<int>());
     PatternCollectionInformation compute_pattern_collection();
@@ -166,6 +168,7 @@ CEGAR::CEGAR(
     utils::LogProxy &log,
     const shared_ptr<utils::RandomNumberGenerator> &rng,
     const shared_ptr<AbstractTask> &task,
+    PDBType pdb_type,
     const vector<FactPair> &goals,
     unordered_set<int> &&blacklisted_variables)
     : max_pdb_size(max_pdb_size),
@@ -175,6 +178,7 @@ CEGAR::CEGAR(
       log(log),
       rng(rng),
       task(task),
+      pdb_type(pdb_type),
       task_proxy(*task),
       goals(goals),
       blacklisted_variables(move(blacklisted_variables)),
@@ -227,7 +231,7 @@ unique_ptr<PatternInfo> CEGAR::compute_pattern_info(Pattern &&pattern) const {
     vector<int> op_cost;
     bool compute_plan = true;
     shared_ptr<PatternDatabase> pdb =
-        make_shared<PatternDatabase>(task_proxy, pattern, op_cost, compute_plan, rng, use_wildcard_plans);
+        compute_pdb(pdb_type, task_proxy, pattern, op_cost, compute_plan, rng, use_wildcard_plans);
     vector<vector<OperatorID>> plan = pdb->extract_wildcard_plan();
 
     bool unsolvable = false;
@@ -665,6 +669,7 @@ PatternCollectionInformation generate_pattern_collection_with_cegar(
     utils::LogProxy &log,
     const shared_ptr<utils::RandomNumberGenerator> &rng,
     const shared_ptr<AbstractTask> &task,
+    PDBType pdb_type,
     const vector<FactPair> &goals,
     unordered_set<int> &&blacklisted_variables) {
     CEGAR cegar(
@@ -675,6 +680,7 @@ PatternCollectionInformation generate_pattern_collection_with_cegar(
         log,
         rng,
         task,
+        pdb_type,
         goals,
         move(blacklisted_variables));
     return cegar.compute_pattern_collection();
@@ -687,6 +693,7 @@ PatternInformation generate_pattern_with_cegar(
     utils::LogProxy &log,
     const shared_ptr<utils::RandomNumberGenerator> &rng,
     const shared_ptr<AbstractTask> &task,
+    PDBType pdb_type,
     const FactPair &goal,
     unordered_set<int> &&blacklisted_variables) {
     vector<FactPair> goals = {goal};
@@ -698,6 +705,7 @@ PatternInformation generate_pattern_with_cegar(
         log,
         rng,
         task,
+        pdb_type,
         goals,
         move(blacklisted_variables));
     PatternCollectionInformation collection_info = cegar.compute_pattern_collection();
@@ -708,7 +716,7 @@ PatternInformation generate_pattern_with_cegar(
     }
 
     Pattern &pattern = new_patterns->front();
-    shared_ptr<PDBCollection> new_pdbs = collection_info.get_pdbs();
+    shared_ptr<PDBCollection> new_pdbs = collection_info.get_pdbs(pdb_type);
     shared_ptr<PatternDatabase> &pdb = new_pdbs->front();
     PatternInformation result(TaskProxy(*task), move(pattern), log);
     result.set_pdb(pdb);

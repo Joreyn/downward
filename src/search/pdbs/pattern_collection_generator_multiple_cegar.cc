@@ -35,6 +35,7 @@ PatternInformation PatternCollectionGeneratorMultipleCegar::compute_pattern(
         silent_log,
         rng,
         task,
+        pdb_type,
         goal,
         move(blacklisted_variables));
 }

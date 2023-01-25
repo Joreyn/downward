@@ -31,7 +31,7 @@ class PatternCollectionInformation {
     std::shared_ptr<std::vector<PatternClique>> pattern_cliques;
     utils::LogProxy &log;
 
-    void create_pdbs_if_missing();
+    void create_pdbs_if_missing(PDBType pdb_type);
     void create_pattern_cliques_if_missing();
 
     bool information_is_valid() const;
@@ -51,7 +51,7 @@ public:
     }
 
     std::shared_ptr<PatternCollection> get_patterns() const;
-    std::shared_ptr<PDBCollection> get_pdbs();
+    std::shared_ptr<PDBCollection> get_pdbs(PDBType pdb_type);
     std::shared_ptr<std::vector<PatternClique>> get_pattern_cliques();
 };
 }

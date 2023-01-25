@@ -32,7 +32,7 @@ CanonicalPDBs get_canonical_pdbs_from_options(
       computed before) so that their computation is not taken into account
       for dominance pruning time.
     */
-    shared_ptr<PDBCollection> pdbs = pattern_collection_info.get_pdbs();
+    shared_ptr<PDBCollection> pdbs = pattern_collection_info.get_pdbs(opts.get<PDBType>("pdb_type"));
     shared_ptr<vector<PatternClique>> pattern_cliques =
         pattern_collection_info.get_pattern_cliques();
 
@@ -86,6 +86,14 @@ void add_canonical_pdbs_options_to_parser(plugins::OptionParser &parser) {
         "value because there are dominating subsets in the collection.",
         "infinity",
         plugins::Bounds("0.0", "infinity"));
+    vector<pair<string, string>> enum_info;
+    enum_info.emplace_back("explicit", "explicit PDB");
+    enum_info.emplace_back("bdd", "BDD PDB");
+    enum_info.emplace_back("evmdd", "EVMDD PDB");
+    parser.add_enum_option<PDBType>(
+        "pdb_type",
+        enum_info,
+        "PDB type");
 }
 
 static shared_ptr<Heuristic> _parse(OptionParser &parser) {

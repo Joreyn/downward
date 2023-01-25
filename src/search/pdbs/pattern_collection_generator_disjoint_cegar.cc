@@ -38,6 +38,7 @@ PatternCollectionInformation PatternCollectionGeneratorDisjointCegar::compute_pa
         log,
         rng,
         task,
+        pdb_type,
         move(goals));
 }
 

@@ -9,8 +9,9 @@ using namespace std;
 
 namespace pdbs {
 IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
-    const TaskProxy &task_proxy, const PatternCollection &intitial_patterns)
+    const TaskProxy &task_proxy, PDBType pdb_type, const PatternCollection &intitial_patterns)
     : task_proxy(task_proxy),
+      pdb_type(pdb_type),
       patterns(make_shared<PatternCollection>(intitial_patterns.begin(),
                                               intitial_patterns.end())),
       pattern_databases(make_shared<PDBCollection>()),
@@ -24,7 +25,7 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
 }
 
 void IncrementalCanonicalPDBs::add_pdb_for_pattern(const Pattern &pattern) {
-    pattern_databases->push_back(make_shared<PatternDatabase>(task_proxy, pattern));
+    pattern_databases->push_back(compute_pdb(pdb_type, task_proxy, pattern));
     size += pattern_databases->back()->get_size();
 }
 

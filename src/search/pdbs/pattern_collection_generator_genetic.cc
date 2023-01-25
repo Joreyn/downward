@@ -203,7 +203,7 @@ void PatternCollectionGeneratorGenetic::evaluate(vector<double> &fitness_values)
         } else {
             /* Generate the pattern collection heuristic and get its fitness
                value. */
-            ZeroOnePDBs zero_one_pdbs(task_proxy, *pattern_collection);
+            ZeroOnePDBs zero_one_pdbs(task_proxy, *pattern_collection, pdb_type);
             fitness = zero_one_pdbs.compute_approx_mean_finite_h();
             // Update the best heuristic found so far.
             if (fitness > best_fitness) {

@@ -8,7 +8,8 @@ using namespace std;
 
 namespace pdbs {
 PatternCollectionGenerator::PatternCollectionGenerator(const plugins::Options &opts)
-    : log(utils::get_log_from_options(opts)) {
+    : pdb_type(opts.get<PDBType>("pdb_type")),
+      log(utils::get_log_from_options(opts)) {
 }
 
 PatternCollectionInformation PatternCollectionGenerator::generate(
@@ -24,7 +25,8 @@ PatternCollectionInformation PatternCollectionGenerator::generate(
 }
 
 PatternGenerator::PatternGenerator(const plugins::Options &opts)
-    : log(utils::get_log_from_options(opts)) {
+    : pdb_type(opts.get<PDBType>("pdb_type")),
+      log(utils::get_log_from_options(opts)) {
 }
 
 PatternInformation PatternGenerator::generate(
@@ -44,6 +46,14 @@ PatternInformation PatternGenerator::generate(
 
 void add_generator_options_to_parser(plugins::OptionParser &parser) {
     utils::add_log_options_to_parser(parser);
+    vector<pair<string, string>> enum_info;
+    enum_info.emplace_back("explicit", "explicit PDB");
+    enum_info.emplace_back("bdd", "BDD PDB");
+    enum_info.emplace_back("evmdd", "EVMDD PDB");
+    parser.add_enum_option<PDBType>(
+        "pdb_type",
+        enum_info,
+        "PDB type");
 }
 
 static PluginTypePlugin<PatternCollectionGenerator> _type_plugin_collection(

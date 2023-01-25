@@ -90,7 +90,7 @@ void PatternCollectionGeneratorMultiple::handle_generated_pattern(
           PDB, update collection size and reset time_point_of_last_new_pattern.
         */
         time_point_of_last_new_pattern = timer.get_elapsed_time();
-        shared_ptr<PatternDatabase> pdb = pattern_info.get_pdb();
+        shared_ptr<PatternDatabase> pdb = pattern_info.get_pdb(pdb_type);
         remaining_collection_size -= pdb->get_size();
         generated_pdbs->push_back(move(pdb));
     }

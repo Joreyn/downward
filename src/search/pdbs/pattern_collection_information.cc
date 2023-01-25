@@ -55,7 +55,7 @@ bool PatternCollectionInformation::information_is_valid() const {
     return true;
 }
 
-void PatternCollectionInformation::create_pdbs_if_missing() {
+void PatternCollectionInformation::create_pdbs_if_missing(PDBType pdb_type) {
     assert(patterns);
     if (!pdbs) {
         utils::Timer timer;
@@ -65,7 +65,7 @@ void PatternCollectionInformation::create_pdbs_if_missing() {
         pdbs = make_shared<PDBCollection>();
         for (const Pattern &pattern : *patterns) {
             shared_ptr<PatternDatabase> pdb =
-                make_shared<PatternDatabase>(task_proxy, pattern);
+                compute_pdb(pdb_type, task_proxy, pattern);
             pdbs->push_back(pdb);
         }
         if (log.is_at_least_normal()) {
@@ -106,8 +106,8 @@ shared_ptr<PatternCollection> PatternCollectionInformation::get_patterns() const
     return patterns;
 }
 
-shared_ptr<PDBCollection> PatternCollectionInformation::get_pdbs() {
-    create_pdbs_if_missing();
+shared_ptr<PDBCollection> PatternCollectionInformation::get_pdbs(PDBType pdb_type) {
+    create_pdbs_if_missing(pdb_type);
     return pdbs;
 }
 

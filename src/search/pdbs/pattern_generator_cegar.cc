@@ -39,6 +39,7 @@ PatternInformation PatternGeneratorCEGAR::compute_pattern(
         log,
         rng,
         task,
+        pdb_type,
         goals[0]);
 }
 
