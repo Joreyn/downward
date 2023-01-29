@@ -20,6 +20,7 @@ public:
     virtual std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override;
     virtual double compute_mean_finite_h() const override;
     virtual bool is_operator_relevant(const OperatorProxy &op) const override;
+    static void create_bddpdb(TaskProxy task_proxy);
 };
 }
 

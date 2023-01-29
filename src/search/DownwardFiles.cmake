@@ -628,6 +628,15 @@ fast_downward_plugin(
     DEPENDENCY_ONLY
 )
 
+#TODO rename
+fast_downward_plugin(
+    NAME BDD_HELPER
+    HELP "bdd helper"
+    SOURCES
+        pdbs/transition_relation
+    DEPENDENCY_ONLY
+)
+
 fast_downward_plugin(
     NAME CEGAR
     HELP "Plugin containing the code for CEGAR heuristics"
@@ -770,7 +779,7 @@ fast_downward_plugin(
         pdbs/validation
         pdbs/zero_one_pdbs
         pdbs/zero_one_pdbs_heuristic
-    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER
+    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER BDD_HELPER
 )
 
 fast_downward_plugin(
