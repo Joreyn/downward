@@ -2,10 +2,15 @@
 #define PDBS_PATTERN_DATABASE_BDD_H
 
 #include "pattern_database.h"
+#include "../task_utils/transition_relation.h"
+
 
 namespace pdbs {
 class PatternDatabaseBDD : public PatternDatabase {
+    ADD all_reached;
 public:
+    ADD models(const GoalsProxy& gp);
+    ADD apply(ADD &add, ADD add1, std::vector<transitionRelation::Trans> vector1);
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
         const Pattern &pattern,
@@ -20,7 +25,10 @@ public:
     virtual std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override;
     virtual double compute_mean_finite_h() const override;
     virtual bool is_operator_relevant(const OperatorProxy &op) const override;
-    static void create_bddpdb(TaskProxy task_proxy);
+    void create_bddpdb(TaskProxy task_proxy);
+
+
+
 };
 }
 

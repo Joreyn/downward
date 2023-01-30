@@ -1,7 +1,5 @@
 #include "pattern_database_bdd.h"
 
-#include "transition_relation.h"
-
 using namespace std;
 
 namespace pdbs {
@@ -39,14 +37,31 @@ bool PatternDatabaseBDD::is_operator_relevant(const OperatorProxy &op) const {
 
 }
 
+//TODO complete
 void PatternDatabaseBDD::create_bddpdb(TaskProxy task_proxy) {
+    std::vector <ADD> reached;
     transitionRelation::init(task_proxy);
-    BDD goal_states = models(task_proxy.get_goals());
-    BDD reached = goal_states; //TODO make sure its actual copy, not reference
+    std::cout<<"hi"<<endl;
+    reached.push_back(models(task_proxy.get_goals()));
+    all_reached=models(task_proxy.get_goals());
     int i = 0;
-    while (true){
+    do{
+        reached.push_back(apply(reached[i], all_reached, transitionRelation::transRelations));
+        i++;
+    }while (reached[i-1]!=reached[i]);
+}
 
-    }
+//TODO test function
+ADD PatternDatabaseBDD::models(const GoalsProxy& gp) {
+BDD test = transitionRelation::mgr->bddOne();
+for (FactProxy fact : gp){
+    test*=transitionRelation::convert_fact_to_bdd(fact,false);
+}
+    return test.Add();
+}
+
+ADD PatternDatabaseBDD::apply(ADD &add, ADD add1, std::vector<transitionRelation::Trans> vector1) {
+    return ADD();
 }
 
 

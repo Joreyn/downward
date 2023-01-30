@@ -630,10 +630,11 @@ fast_downward_plugin(
 
 #TODO rename
 fast_downward_plugin(
-    NAME BDD_HELPER
-    HELP "bdd helper"
+    NAME TRANSITION_RELATION
+    HELP "transition relation"
     SOURCES
-        pdbs/transition_relation
+        task_utils/transition_relation
+    DEPENDS CORE_SOURCES
     DEPENDENCY_ONLY
 )
 
@@ -779,7 +780,7 @@ fast_downward_plugin(
         pdbs/validation
         pdbs/zero_one_pdbs
         pdbs/zero_one_pdbs_heuristic
-    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER BDD_HELPER
+    DEPENDS CAUSAL_GRAPH MAX_CLIQUES PRIORITY_QUEUES SAMPLING SUCCESSOR_GENERATOR TASK_PROPERTIES VARIABLE_ORDER_FINDER TRANSITION_RELATION
 )
 
 fast_downward_plugin(

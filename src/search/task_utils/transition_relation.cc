@@ -4,8 +4,8 @@
 
 using namespace transitionRelation;
 
-static std::vector<Trans> transRelations;
 
+namespace transitionRelation {
 //TODO test
 void init(TaskProxy &task_proxy){
     //initialize CUDD
@@ -95,4 +95,5 @@ int calc_numBDDVars(TaskProxy &task_proxy){
         sum+=ceil(log2(variable.get_domain_size()));
     }
     return 2*sum; //double the sum, because x,x'
+}
 }
