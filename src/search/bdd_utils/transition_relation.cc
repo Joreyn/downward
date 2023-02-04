@@ -64,4 +64,9 @@ namespace transition {
     }
 
     Transition::Transition(const BDD &bdd, int cost) : bdd(bdd), cost(cost) {}
+
+    //TODO maybe reverse
+    bool Transition::operator<(const Transition &rhs) const {
+        return cost < rhs.cost;
+    }
 }

@@ -11,7 +11,10 @@ namespace transition {
         BDD bdd;
         int cost;
         Transition(const BDD& bdd, int cost);
+
+        bool operator<(const Transition &rhs) const;
     };
+
     class TransitionRelation {
     public:
         Cudd * mgr;
