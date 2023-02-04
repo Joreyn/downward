@@ -2,11 +2,14 @@
 #define PDBS_PATTERN_DATABASE_BDD_H
 
 #include "pattern_database.h"
-#include "../task_utils/transition_relation.h"
+#include "../bdd_utils/transition_relation.h"
 
-
+using namespace transition;
 namespace pdbs {
 class PatternDatabaseBDD : public PatternDatabase {
+    TransitionRelation* transition_relation;
+    Cudd* mgr;
+    ADD cost_map;
 public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
@@ -24,8 +27,7 @@ public:
     virtual bool is_operator_relevant(const OperatorProxy &op) const override;
 
 
-
-
+    Transition apply(const transition::Transition &transition, Transition goal);
 };
 }
 

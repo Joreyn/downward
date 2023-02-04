@@ -628,13 +628,21 @@ fast_downward_plugin(
     DEPENDENCY_ONLY
 )
 
-#TODO rename
+fast_downward_plugin(
+    NAME SYM_VARIABLES
+    HELP "sym_variables"
+    SOURCES
+        bdd_utils/sym_variables
+    DEPENDS CORE_SOURCES
+    DEPENDENCY_ONLY
+)
+
 fast_downward_plugin(
     NAME TRANSITION_RELATION
     HELP "transition relation"
     SOURCES
-        task_utils/transition_relation
-    DEPENDS CORE_SOURCES
+        bdd_utils/transition_relation
+    DEPENDS CORE_SOURCES SYM_VARIABLES
     DEPENDENCY_ONLY
 )
 
@@ -740,6 +748,7 @@ fast_downward_plugin(
     DEPENDS LP_SOLVER LANDMARK_CUT_HEURISTIC PDBS TASK_PROPERTIES
 )
 
+#TODO delete TRANSITION_RELATION_OLD from dependency
 fast_downward_plugin(
     NAME PDBS
     HELP "Plugin containing the code for PDBs"
