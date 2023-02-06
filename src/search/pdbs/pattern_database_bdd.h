@@ -10,7 +10,7 @@ class PatternDatabaseBDD : public PatternDatabase {
     TransitionRelation* transition_relation;
     Cudd* mgr;
     ADD cost_map;
-    vector<Transition> result;
+    vector<Transition> result; //TODO delete
 public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
@@ -26,9 +26,12 @@ public:
     virtual std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override;
     virtual double compute_mean_finite_h() const override;
     virtual bool is_operator_relevant(const OperatorProxy &op) const override;
+    int get_value_bdd(const std::vector<int> &state) const; //TODO delete
 
 
     Transition apply(const transition::Transition &transition, const Transition& goal);
+
+    inline Transition &forget(Transition &_reached);
 };
 }
 

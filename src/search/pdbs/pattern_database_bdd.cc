@@ -21,11 +21,17 @@ namespace pdbs {
         g_log << "TransitionRelation finished" << endl;
 
         mgr = transition_relation->mgr;
+
+        // calc bdd of goal
         Transition goal = Transition(mgr->bddOne(), 0);
         for (const FactProxy &fp: task_proxy.get_goals()) {
-            goal.bdd *= transition_relation->fact_to_bdd(fp, true);
+            goal.bdd *= transition_relation->fact_to_bdd(fp, false);
         }
-        vector<Transition> reached_with_cost;
+
+        // TODO: (after merging same cost Transitions)
+        //  change index no cost to int, as there will be only one after merging same cost transitions
+
+        // Extract the index of zero cost Transition from all defined transitions
         vector<unsigned int> index_no_cost;
         vector<unsigned int> index_with_cost;
         for (unsigned int i = 0; i < transition_relation->transitions.size(); i++) {
@@ -39,8 +45,9 @@ namespace pdbs {
         //TODO use pointers/initialize variables earlier (result only as local variable here)
         priority_queue<Transition> pq;
         pq.push(goal);
+        //TODO edit break condition
         while (!pq.empty()) {
-            g_log << "in while loop" << endl;
+            //g_log << "in while loop" << endl;
             Transition top = pq.top();
             Transition currently_evaluated =pq.top();
             pq.pop();
@@ -52,10 +59,11 @@ namespace pdbs {
             //evaluate the 0 cost transitions first
             // (it is also directly added for the not zero cost transition relations)
             while (true) {
-                //TODO: since operations with same cost are already merged, replace loop with if/else
+                //TODO: since operations with same cost are already merged, replace loop with "if"
                 for (unsigned int i: index_no_cost) {
                     top = apply(transition_relation->transitions[i], top);
                 }
+                //TODO use LEQ or similar instead of checking ...==mgr->bddZero()
                 if ((top.bdd * !currently_evaluated.bdd) == mgr->bddZero()) break;
             }
             for (unsigned int i: index_with_cost) {
@@ -67,10 +75,13 @@ namespace pdbs {
             }
             result.push_back(currently_evaluated);
         }
+        /*
         g_log<<"printing result"<<endl;
         for (const Transition& tr : result){
             g_log<<tr.cost<<" "<<tr.bdd<<endl;
         }
+         */
+
         /* Iteratively remove previous sets from higher cost sets, leading to disjunction
         for (unsigned int i = result.size()-1; i>0;i--){
             result[i].bdd=result[i].bdd*!result[i-1].bdd;
@@ -91,13 +102,24 @@ namespace pdbs {
 
         //TODO: rename function, as the conjunction is also included here
     Transition PatternDatabaseBDD::apply(const Transition &transition, const Transition& reached) {
-        g_log << "apply" << endl;
+        //g_log << "apply" << endl;
         Transition _reached = reached;
-        int new_cost = _reached.cost+transition.cost;
+        //TODO understand _reached.bdd.AdjPermuteX() and evaluate whether it would be faster
+        _reached.bdd=_reached.bdd.SwapVariables(transition_relation->primed_bdd_variables,
+                                                transition_relation->bdd_variables);
         _reached.bdd*=transition.bdd;
+        _reached = forget(_reached);
 
+        if (transition.cost==0){
+            g_log<<"cost zero transition"<<endl;
+            return Transition(_reached.bdd+=reached.bdd, _reached.cost+transition.cost);
+        }
+        //TODO: evaluate, whether to use _reached.bdd+=reached.bdd or _reached.bdd this is helpful
+        return Transition(_reached.bdd+=reached.bdd, _reached.cost+transition.cost);
+    }
+
+    inline Transition &PatternDatabaseBDD::forget(Transition &_reached) {
         //TODO understand temp.ExistAbstract() and Constrain  and evaluate whether they would be faster
-        // Renaming
         /*BDD temp=mgr->bddZero();
         for (unsigned int var_id = 0; var_id<transition_relation->preconditions_vector.size(); var_id++){
             for (unsigned int val = 0; val<transition_relation->preconditions_vector[var_id].size(); val++){
@@ -110,38 +132,34 @@ namespace pdbs {
         }*/
         for (const BDD& bdd : transition_relation->primed_bdd_variables){
                 _reached.bdd=_reached.bdd.ExistAbstract(bdd);
-                //g_log<<bdd<<endl;
-                //g_log<<_reached.bdd<<endl;
         }
-
-        //TODO understand _reached.bdd.AdjPermuteX() and evaluate whether it would be faster
-        _reached.bdd=_reached.bdd.SwapVariables(transition_relation->primed_bdd_variables,
-                                   transition_relation->bdd_variables);
-        if (transition.cost==0){
-            return Transition(_reached.bdd+=reached.bdd, new_cost);
-        }
-
-        return Transition(_reached.bdd, new_cost);
+        return _reached;
     }
 
-//TODO
-    int PatternDatabaseBDD::get_value(const vector<int> &state) const {
-        g_log << "get_value" << endl;
-        g_log<<state<<endl;
-        BDD temp_bdd = mgr->bddOne();
+//TODO delete
+    int PatternDatabaseBDD::get_value_bdd(const vector<int> &state) const {
+        //g_log << "get_value" << endl;
+        //g_log<<state<<endl;
+        BDD state_as_bdd = mgr->bddOne();
         for (unsigned int var = 0; var < state.size();var++){
-            temp_bdd*=transition_relation->effects_vector[var][state[var]];
+            state_as_bdd*=transition_relation->preconditions_vector[var][state[var]];
         }
-        g_log<<"state as bdd"<<endl;
-        g_log<<temp_bdd<<endl;
+        //g_log<<"state as bdd"<<endl;
+        //g_log << state_as_bdd << endl;
         //must be ordered by cost
-        for(const Transition& trans : result){
-            if((trans.bdd*temp_bdd!=mgr->bddZero())){
-                g_log << "returning cost: "<< trans.cost << endl;
-                return trans.cost;
+        for(const Transition& res : result){
+            if((state_as_bdd * res.bdd != mgr->bddZero())){
+                //g_log << "returning cost: "<< res.cost << endl;
+                return res.cost;
             }
         }
+        //g_log << "returning cost: "<< "infinity" << endl;
         return numeric_limits<int>::max();
+    }
+
+    //TODO implement with ADD
+    int PatternDatabaseBDD::get_value(const vector<int> &state) const{
+        return get_value_bdd(state);
     }
 
     const Pattern &PatternDatabaseBDD::get_pattern() const {
@@ -163,6 +181,4 @@ namespace pdbs {
     bool PatternDatabaseBDD::is_operator_relevant(const OperatorProxy &op) const {
 
     }
-
-
 }
