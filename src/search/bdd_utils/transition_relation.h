@@ -18,11 +18,12 @@ namespace transition {
     class TransitionRelation {
     public:
         Cudd * mgr;
-        vector <BDD> bdd_variables;
+        vector <BDD> bdd_variables, primed_bdd_variables;
         vector<vector<BDD>> preconditions_vector, effects_vector; //_[var_id][val]
         vector<BDD> biimplication;
         vector<Transition> transitions;
         BDD fact_to_bdd(FactProxy fact_proxy, bool is_effect);
+        BDD fact_to_bdd(const vector<int> &state);
         explicit TransitionRelation(const TaskProxy &task_proxy);
     };
 }

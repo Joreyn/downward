@@ -7,9 +7,11 @@ using namespace utils;
 namespace transition {
     TransitionRelation::TransitionRelation(const TaskProxy &task_proxy) {
         SymVariables symVariables = SymVariables(task_proxy);
+        g_log << "symVariables initialized" << endl;
 
         mgr = symVariables.getMgr();
         bdd_variables = symVariables.getVariables();
+        primed_bdd_variables = symVariables.getPrimedBddVariables();
         effects_vector = symVariables.getEffectsVector();
         preconditions_vector = symVariables.getPreconditionsVector();
         biimplication = symVariables.getBiimplication();
@@ -18,6 +20,7 @@ namespace transition {
         //TODO: allocate memory for transRelations here for more speed
         map<int, unsigned int> cost_pos;
         BDD temp;
+
         //TODO: test, whether this works as intended with not unit-cost operations
         vector<int> zero_vector(task_proxy.get_variables().size());
         vector<int> effect_plus_precondition(task_proxy.get_variables().size());
@@ -43,9 +46,10 @@ namespace transition {
                 }
             }
             //add the associated BDD to the BDD in the vector, which has the same cost
+            //TODO assert correctness
             int cost = o.get_cost();
             if (cost_pos.count(cost)) {
-                transitions[cost_pos[cost]].bdd *= temp;
+                transitions[cost_pos[cost]].bdd += temp;
             } else {
                 transitions.emplace_back(temp, cost);
                 cost_pos[cost] = transitions.size() - 1;
@@ -67,6 +71,6 @@ namespace transition {
 
     //TODO maybe reverse
     bool Transition::operator<(const Transition &rhs) const {
-        return cost < rhs.cost;
+        return cost > rhs.cost;
     }
 }

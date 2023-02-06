@@ -10,6 +10,7 @@ class PatternDatabaseBDD : public PatternDatabase {
     TransitionRelation* transition_relation;
     Cudd* mgr;
     ADD cost_map;
+    vector<Transition> result;
 public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
@@ -27,7 +28,7 @@ public:
     virtual bool is_operator_relevant(const OperatorProxy &op) const override;
 
 
-    Transition apply(const transition::Transition &transition, Transition goal);
+    Transition apply(const transition::Transition &transition, const Transition& goal);
 };
 }
 

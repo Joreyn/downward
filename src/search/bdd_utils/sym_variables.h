@@ -11,11 +11,16 @@ namespace symbolic {
     class SymVariables {
         //TODO make some variables static, and only initialize if not already (for multiple Patterns)
         Cudd * mgr;
-        vector <BDD> bdd_variables; //maybe change order (currently x0,x0',x1,x1',y0,y0',...)
+        vector <BDD> bdd_variables, primed_bdd_variables;
+    public:
+        const vector<BDD> &getPrimedBddVariables() const;
+
+    private:
         /* TODO: technically it is better to use a index map,
          such that preconditions/effects vector has smaller size (because of pattern),
          but (once implemented), all bdd_pdb can share these vectors, leading to possibly slightly higher
          */
+        map<int,int> index_map; //TODO probably not needed, make local
         vector<vector<BDD>> preconditions_vector, effects_vector; //_[var_id][val]
         vector<BDD> biimplication;
     public:
@@ -27,7 +32,7 @@ namespace symbolic {
         vector<vector<BDD>> preconditions_vector_restricted, effects_vector_restricted; //_[var_id][val]
         int calc_numBDDVars(const TaskProxy &task_proxy);
         vector<bool> convert_to_bool_vector(int value, int vector_size);
-        map<int,int> create_index_map(const TaskProxy &task_proxy);
+        void create_index_map(const TaskProxy &task_proxy);
 
     public:
         explicit SymVariables(const TaskProxy &task_proxy); //TODO understand explicit
