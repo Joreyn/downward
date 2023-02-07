@@ -7,10 +7,15 @@
 using namespace transition;
 namespace pdbs {
 class PatternDatabaseBDD : public PatternDatabase {
+    //TODO: where add grouping and reordering?
+    // http://web.mit.edu/sage/export/tmp/y/usr/share/doc/polybori/cudd/node3.html#SECTION000316000000000000000
     TransitionRelation* transition_relation;
+    Pattern pattern;
     Cudd* mgr;
-    ADD cost_map;
-    vector<Transition> result; //TODO delete
+    DdNode* cost_map_dd;
+    ADD cost_map_add;
+    vector<int> domain_sizes_bdd; //Needed for
+    vector<Transition> result; //TODO delete after ADD computed
 public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
@@ -28,10 +33,10 @@ public:
     virtual bool is_operator_relevant(const OperatorProxy &op) const override;
     int get_value_bdd(const std::vector<int> &state) const; //TODO delete
 
-
+private:
     Transition apply(const transition::Transition &transition, const Transition& goal);
 
-    inline Transition &forget(Transition &_reached);
+    inline Transition &forget(Transition &_reached); //TODO is inline better?
 };
 }
 

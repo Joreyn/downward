@@ -5,9 +5,9 @@
 using namespace symbolic;
 using namespace utils;
 namespace transition {
-    TransitionRelation::TransitionRelation(const TaskProxy &task_proxy) {
+    TransitionRelation::TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern) {
+        //TODO: don't create new SymVariables for same taskProxy
         SymVariables symVariables = SymVariables(task_proxy);
-        g_log << "symVariables initialized" << endl;
 
         mgr = symVariables.getMgr();
         bdd_variables = symVariables.getVariables();
@@ -22,39 +22,44 @@ namespace transition {
         BDD temp;
 
         //TODO: test, whether this works as intended with not unit-cost operations
+
+        // TODO: if the preconditions and effects of a operator are ordered by var_id,
+        //  this can be simplified to remove the usage of std::count (possibly priorityqueue)
+        //   and it can be be further simplified, if pattern is ordered by var_id
         vector<int> zero_vector(task_proxy.get_variables().size());
         vector<int> effect_plus_precondition(task_proxy.get_variables().size());
         for (OperatorProxy o: operators) {
             temp = mgr->bddOne();
             effect_plus_precondition = zero_vector;
             for (EffectProxy eff: o.get_effects()) {
-                temp *= fact_to_bdd(eff.get_fact(), true);
-                effect_plus_precondition[eff.get_fact().get_variable().get_id()]=1;
+                if (count(pattern.begin(), pattern.end(), eff.get_fact().get_variable().get_id())) {
+                    temp *= fact_to_bdd(eff.get_fact(), true);
+                    effect_plus_precondition[eff.get_fact().get_variable().get_id()] = 1;
+                }
             }
             for (FactProxy prec: o.get_preconditions()) {
-                temp *= fact_to_bdd(prec, false);
-                //effect_plus_precondition[prec.get_variable().get_id()]++;
+                if (count(pattern.begin(), pattern.end(), prec.get_variable().get_id())) {
+                    temp *= fact_to_bdd(prec, false);
+                }
             }
             //add biimplication if needed
             for (unsigned int i = 0; i < effect_plus_precondition.size(); i++) {
-                if (effect_plus_precondition[i] == 0) {
-                    temp *= biimplication[i];
+                if (effect_plus_precondition[i] == 0 &&
+                    count(pattern.begin(), pattern.end(), i)) {
+                        temp *= biimplication[i];
                 } else if (effect_plus_precondition[i] > 1 || effect_plus_precondition[i] < 0) {
-                    //TODO edit message, before turning in
+                    //TODO remove message, before turning in
                     g_log << "something terrible has happened" << endl;
-                }
-                else {
-
                 }
             }
             //add the associated BDD to the BDD in the vector, which has the same cost
             //TODO assert correctness (do it via Conjunction tree?)
             int cost = o.get_cost();
             //if (cost_pos.count(cost)) {
-                //transitions[cost_pos[cost]].bdd += temp;
+            //transitions[cost_pos[cost]].bdd += temp;
             //} else {
             transitions.emplace_back(temp, cost);
-                //cost_pos[cost] = transitions.size() - 1;
+            //cost_pos[cost] = transitions.size() - 1;
             //}
         }
 

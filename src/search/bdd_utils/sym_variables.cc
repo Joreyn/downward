@@ -10,6 +10,7 @@ using namespace utils;
 namespace symbolic {
     SymVariables::SymVariables(const TaskProxy &task_proxy) {
         int numBDDVars=calc_numBDDVars(task_proxy);
+
         //double the size, because x,x'
         mgr = new Cudd(2*numBDDVars); //TODO cachesize etc if needed
 
@@ -21,8 +22,6 @@ namespace symbolic {
             bdd_variables[i]=mgr->bddVar(2*i);
             primed_bdd_variables[i]=mgr->bddVar(2*i+1);
         }
-        g_log<<"bddVars created"<<endl;
-
 
         //init the vector sizes for precondition/effect
         unsigned int numOfNormalVariables = task_proxy.get_variables().size();
@@ -31,14 +30,8 @@ namespace symbolic {
         biimplication = vector<BDD>(numOfNormalVariables);
 
         create_index_map(task_proxy); //TODO: this leads to maybe not intended ordering
-        g_log<<"printing index map:"<<endl;
-        for (auto item:index_map){
-            g_log<<item.first<<":"<<item.second<<endl;
-        }
-        g_log<<endl;
 
         init_prec_eff(task_proxy);
-        g_log<<"init_prec_eff finished"<<endl;
 
         int id;
         for (VariableProxy variable : task_proxy.get_variables()){
@@ -49,12 +42,13 @@ namespace symbolic {
             }
             biimplication[variable.get_id()]=temp;
         }
-
-
-        g_log<<"SymVariables created"<<endl;
-
     }
+    SymVariables::~SymVariables() = default;
+
     //create the BDDs associated with each value and save them in preconditions/effect
+    //TODO: can maybe be made more efficient, as some values partially imply other
+    // (e.g. maybe use "tree?" such as 00xx xx00 etc, then calc) (similar to connection of transitions)
+    //  also, instead of creating a boolean vector, use the same logic directly
     void SymVariables::init_prec_eff(const TaskProxy &task_proxy) {
         int variable_position; //the position the variable has in the index map
         int variable_id;
@@ -138,5 +132,5 @@ namespace symbolic {
         return primed_bdd_variables;
     }
 
-    SymVariables::~SymVariables() = default;
+
 }

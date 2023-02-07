@@ -7,11 +7,11 @@
 #include <utility>
 #include "sym_variables.h"
 namespace transition {
+    //TODO: use Cudd_bddIte
     struct Transition{
         BDD bdd;
         int cost;
         Transition(const BDD& bdd, int cost);
-
         bool operator<(const Transition &rhs) const;
     };
 
@@ -23,8 +23,7 @@ namespace transition {
         vector<BDD> biimplication;
         vector<Transition> transitions;
         BDD fact_to_bdd(FactProxy fact_proxy, bool is_effect);
-        BDD fact_to_bdd(const vector<int> &state);
-        explicit TransitionRelation(const TaskProxy &task_proxy);
+        TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern);
     };
 }
 
