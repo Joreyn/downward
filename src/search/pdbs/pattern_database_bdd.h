@@ -20,6 +20,7 @@ public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
         const Pattern &pattern,
+        symbolic::SymVariables* symVariables = nullptr,
         const std::vector<int> &operator_costs = std::vector<int>(),
         bool compute_plan = false,
         const std::shared_ptr<utils::RandomNumberGenerator> &rng = nullptr,

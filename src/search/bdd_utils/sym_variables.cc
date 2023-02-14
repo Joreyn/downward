@@ -9,6 +9,7 @@ using namespace utils;
 
 namespace symbolic {
     SymVariables::SymVariables(const TaskProxy &task_proxy) {
+        g_log<<"initializing symVariables"<<endl;
         int numBDDVars=calc_numBDDVars(task_proxy);
 
         //double the size, because x,x'

@@ -14,6 +14,7 @@ namespace pdbs {
     PatternDatabaseBDD::PatternDatabaseBDD(
             const TaskProxy &task_proxy,
             const Pattern &pattern,
+            symbolic::SymVariables* symVariables,
             const vector<int> &operator_costs,
             bool compute_plan,
             const shared_ptr<utils::RandomNumberGenerator> &rng,
@@ -31,7 +32,7 @@ namespace pdbs {
         }
 
 
-        transition_relation = new TransitionRelation(task_proxy, (vector<int>) pattern);
+        transition_relation = new TransitionRelation(task_proxy, (vector<int>) pattern, symVariables);
         g_log << "TransitionRelation finished" << endl;
 
         mgr = transition_relation->mgr;
@@ -90,26 +91,12 @@ namespace pdbs {
             }
             result.push_back(currently_evaluated);
         }
-        /*
-        g_log<<"printing result"<<endl;
-        for (const Transition& tr : result){
-            g_log<<tr.cost<<" "<<tr.bdd<<endl;
-        }
-         */
 
         /* Iteratively remove previous sets from higher cost sets, leading to disjunction
         for (unsigned int i = result.size()-1; i>0;i--){
             result[i].bdd=result[i].bdd*!result[i-1].bdd;
         }*/
-        // TODO: then Convert these into a single ADD containing the respective costs on its leaf nodes,
-        //  implement get_value, then test patterns
         g_log << "creating ADD" << endl;
-        //ADD constant5 =mgr->constant(5);
-        //cost_map=mgr->addOne().Times(constant5);
-
-        //Cudd_ReadPlusInfinity(mgr);
-        //Cudd_SetBackground(mgr, Cudd_ReadPlusInfinity(mgr));
-
         DdNode* temp;
 
         ADD cost;
@@ -121,21 +108,14 @@ namespace pdbs {
         g_log<<result.size()<<endl;
         for (const Transition& trans : result){
             cost=mgr->constant(trans.cost);
-            g_log << "cost=mgr->constant(trans.cost);" << endl;
             temp_add=trans.bdd.Add().Ite(cost,constant_max);
-            g_log<<"temp_add=trans.bdd.Add().Ite(constant_max,cost);"<<endl;
             cost_map_add=cost_map_add.Minimum(temp_add);
-            g_log<<"cost_map_add=cost_map_add.Minimum(temp_add);"<<endl;
 
 
             temp = Cudd_addIte(mgr->getManager(),trans.bdd.Add().getNode(),mgr->constant(trans.cost).getNode(),constant_max.getNode());
-            g_log << "temp = Cudd_addIte(mgr->getManager(),trans.bdd.Add().getNode(),mgr->constant(trans.cost).getNode(),constant_max.getNode());" << endl;
             Cudd_Ref(temp);
-            g_log<<"Cudd_Ref(temp);"<<endl;
             cost_map_dd=Cudd_addApply(mgr->getManager(), Cudd_addMinimum, cost_map_dd, temp);
-            g_log<<"cost_map=Cudd_addApply(mgr->getManager(),Cudd_addMinimum,cost_map,temp);"<<endl;
             Cudd_RecursiveDeref(mgr->getManager(), temp);
-            g_log<<"Cudd_RecursiveDeref(mgr->getManager(), temp);"<<endl;
         }
         g_log << "pdb created" << endl;
     }
@@ -184,18 +164,6 @@ namespace pdbs {
 
     //TODO implement with ADD
     int PatternDatabaseBDD::get_value(const vector<int> &state) const{
-        /*vector<int> converted;
-        vector<unsigned int> to_add;
-        for (unsigned int var_id=0;var_id<state.size();var_id++){
-            to_add=transition_relation->preconditions_vector[var_id][state[var_id]].SupportIndices();
-            converted.insert(converted.begin(),make_move_iterator(to_add.begin()),make_move_iterator(to_add.end()));
-        }
-        int placeholder = cost_map.Eval((int *) &converted);
-
-        BDD converted = mgr->bddOne();
-        for (unsigned int var_id=0;var_id<state.size();var_id++){
-            converted*=transition_relation->preconditions_vector[var_id][state[var_id]];
-        }*/
         vector<int> converted;
         int value;
         for (unsigned int var_id=0;var_id<state.size();var_id++){
@@ -214,12 +182,13 @@ namespace pdbs {
 
         int res = get_value_bdd(state);
 
-        g_log<<"BDD_value: " << res <<
-        "DD_value: " << placeholder <<
-        "ADD_value(CudV)" << placeholder_add <<
-        "ADD_value(direct)" << (int) Cudd_V(eval_add.getRegularNode()) << endl;
-        //g_log<<"ADD eval input: " << converted << endl;
-
+        if(res!=placeholder||res!=placeholder_add||res!=(int) Cudd_V(eval_add.getRegularNode())) {
+            g_log <<endl<< "BDD_value: " << res <<
+                  "DD_value: " << placeholder <<
+                  "ADD_value(CudV)" << placeholder_add <<
+                  "ADD_value(direct)" << (int) Cudd_V(eval_add.getRegularNode()) << endl <<
+                  "ADD eval input: " << converted << endl << endl;
+        }
         return get_value_bdd(state);
     }
 
@@ -228,7 +197,6 @@ namespace pdbs {
     }
 
     int PatternDatabaseBDD::get_size() const {
-
     }
 
     vector<vector<OperatorID>> &&PatternDatabaseBDD::extract_wildcard_plan() {

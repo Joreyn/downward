@@ -5,16 +5,16 @@
 using namespace symbolic;
 using namespace utils;
 namespace transition {
-    TransitionRelation::TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern) {
+    TransitionRelation::TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern, SymVariables* symVariables) {
         //TODO: don't create new SymVariables for same taskProxy
-        SymVariables symVariables = SymVariables(task_proxy);
+        //SymVariables symVariables = SymVariables(task_proxy);
 
-        mgr = symVariables.getMgr();
-        bdd_variables = symVariables.getVariables();
-        primed_bdd_variables = symVariables.getPrimedBddVariables();
-        effects_vector = symVariables.getEffectsVector();
-        preconditions_vector = symVariables.getPreconditionsVector();
-        biimplication = symVariables.getBiimplication();
+        mgr = symVariables->getMgr();
+        bdd_variables = symVariables->getVariables();
+        primed_bdd_variables = symVariables->getPrimedBddVariables();
+        effects_vector = symVariables->getEffectsVector();
+        preconditions_vector = symVariables->getPreconditionsVector();
+        biimplication = symVariables->getBiimplication();
 
         OperatorsProxy operators = task_proxy.get_operators();
         //TODO: allocate memory for transRelations here for more speed

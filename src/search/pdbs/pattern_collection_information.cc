@@ -63,11 +63,29 @@ void PatternCollectionInformation::create_pdbs_if_missing(PDBType pdb_type) {
             log << "Computing PDBs for pattern collection..." << endl;
         }
         pdbs = make_shared<PDBCollection>();
-        for (const Pattern &pattern : *patterns) {
-            shared_ptr<PatternDatabase> pdb =
-                compute_pdb(pdb_type, task_proxy, pattern);
-            pdbs->push_back(pdb);
+
+        if (pdb_type==PDBType::BDD){
+            symbolic::SymVariables sym_variables = symbolic::SymVariables(task_proxy);
+            for (const Pattern &pattern : *patterns) {
+                shared_ptr<PatternDatabase> pdb =
+                        compute_pdb(pdb_type, task_proxy, pattern, &sym_variables);
+                pdbs->push_back(pdb);
+            }
+        }else if (pdb_type==PDBType::Explicit){
+            for (const Pattern &pattern : *patterns) {
+                shared_ptr<PatternDatabase> pdb =
+                        compute_pdb(pdb_type, task_proxy, pattern, nullptr);
+                pdbs->push_back(pdb);
+            }
+        } else if (pdb_type==PDBType::EVMDD){
+            //TODO
+            for (const Pattern &pattern : *patterns) {
+                shared_ptr<PatternDatabase> pdb =
+                        compute_pdb(pdb_type, task_proxy, pattern, nullptr);
+                pdbs->push_back(pdb);
+            }
         }
+
         if (log.is_at_least_normal()) {
             log << "Done computing PDBs for pattern collection: "
                 << timer << endl;

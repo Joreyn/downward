@@ -23,7 +23,7 @@ namespace transition {
         vector<BDD> biimplication;
         vector<Transition> transitions;
         BDD fact_to_bdd(FactProxy fact_proxy, bool is_effect);
-        TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern);
+        TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern, symbolic::SymVariables* symVariables);
     };
 }
 

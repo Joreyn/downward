@@ -230,8 +230,18 @@ bool CEGAR::time_limit_reached(
 unique_ptr<PatternInfo> CEGAR::compute_pattern_info(Pattern &&pattern) const {
     vector<int> op_cost;
     bool compute_plan = true;
-    shared_ptr<PatternDatabase> pdb =
-        compute_pdb(pdb_type, task_proxy, pattern, op_cost, compute_plan, rng, use_wildcard_plans);
+    shared_ptr<PatternDatabase> pdb;
+    if (pdb_type==PDBType::BDD){
+        symbolic::SymVariables sym_variables = symbolic::SymVariables(task_proxy);
+        pdb = compute_pdb(pdb_type, task_proxy, pattern,&sym_variables, op_cost, compute_plan, rng, use_wildcard_plans);
+    }else if (pdb_type==PDBType::EVMDD){
+        //TODO
+        pdb = compute_pdb(pdb_type, task_proxy, pattern, nullptr, op_cost, compute_plan, rng, use_wildcard_plans);
+    }else{
+        pdb = compute_pdb(pdb_type, task_proxy, pattern, nullptr, op_cost, compute_plan, rng, use_wildcard_plans);
+    }
+
+
     vector<vector<OperatorID>> plan = pdb->extract_wildcard_plan();
 
     bool unsolvable = false;

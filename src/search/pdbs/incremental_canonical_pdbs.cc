@@ -18,6 +18,14 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
       pattern_cliques(nullptr),
       size(0) {
     pattern_databases->reserve(patterns->size());
+    if(pdb_type==PDBType::BDD){
+        symbolic::SymVariables sym_variables_ = symbolic::SymVariables(task_proxy);
+        //TODO possible debug
+        sym_variables=&sym_variables_;
+    } else {
+        sym_variables = nullptr;
+    }
+
     for (const Pattern &pattern : *patterns)
         add_pdb_for_pattern(pattern);
     are_additive = compute_additive_vars(task_proxy);
@@ -25,7 +33,7 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
 }
 
 void IncrementalCanonicalPDBs::add_pdb_for_pattern(const Pattern &pattern) {
-    pattern_databases->push_back(compute_pdb(pdb_type, task_proxy, pattern));
+    pattern_databases->push_back(compute_pdb(pdb_type, task_proxy, pattern, sym_variables));
     size += pattern_databases->back()->get_size();
 }
 

@@ -24,7 +24,17 @@ bool PatternInformation::information_is_valid() const {
 
 void PatternInformation::create_pdb_if_missing(PDBType pdb_type) {
     if (!pdb) {
-        pdb = compute_pdb(pdb_type, task_proxy, pattern);
+        if(pdb_type==PDBType::BDD){
+            symbolic::SymVariables sym_variables = symbolic::SymVariables(task_proxy);
+            pdb = compute_pdb(pdb_type, task_proxy, pattern, &sym_variables);
+        }else if(pdb_type==PDBType::EVMDD){
+            //TODO
+            pdb = compute_pdb(pdb_type, task_proxy, pattern, nullptr);
+        }else if(pdb_type==PDBType::Explicit){
+            symbolic::SymVariables sym_variables = symbolic::SymVariables(task_proxy);
+            pdb = compute_pdb(pdb_type, task_proxy, pattern, nullptr);
+        }
+
     }
 }
 

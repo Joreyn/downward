@@ -1,6 +1,7 @@
 #include "zero_one_pdbs.h"
 
 #include "pattern_database.h"
+#include "../bdd_utils/sym_variables.h"
 
 #include "../task_proxy.h"
 
@@ -23,18 +24,36 @@ ZeroOnePDBs::ZeroOnePDBs(
         remaining_operator_costs.push_back(op.get_cost());
 
     pattern_databases.reserve(patterns.size());
-    for (const Pattern &pattern : patterns) {
-        shared_ptr<PatternDatabase> pdb = compute_pdb(
-            pdb_type, task_proxy, pattern, remaining_operator_costs);
 
-        /* Set cost of relevant operators to 0 for further iterations
-           (action cost partitioning). */
-        for (OperatorProxy op : operators) {
-            if (pdb->is_operator_relevant(op))
-                remaining_operator_costs[op.get_id()] = 0;
+    if(pdb_type==PDBType::BDD){
+        symbolic::SymVariables sym_variables = symbolic::SymVariables(task_proxy);
+        for (const Pattern &pattern : patterns) {
+            shared_ptr<PatternDatabase> pdb = compute_pdb(
+                    pdb_type, task_proxy, pattern, &sym_variables, remaining_operator_costs, false, nullptr, false);
+
+            /* Set cost of relevant operators to 0 for further iterations
+               (action cost partitioning). */
+            for (OperatorProxy op : operators) {
+                if (pdb->is_operator_relevant(op))
+                    remaining_operator_costs[op.get_id()] = 0;
+            }
+
+            pattern_databases.push_back(pdb);
         }
+    }else{
+        for (const Pattern &pattern : patterns) {
+            shared_ptr<PatternDatabase> pdb = compute_pdb(
+                    pdb_type, task_proxy, pattern, nullptr, remaining_operator_costs);
 
-        pattern_databases.push_back(pdb);
+            /* Set cost of relevant operators to 0 for further iterations
+               (action cost partitioning). */
+            for (OperatorProxy op : operators) {
+                if (pdb->is_operator_relevant(op))
+                    remaining_operator_costs[op.get_id()] = 0;
+            }
+
+            pattern_databases.push_back(pdb);
+        }
     }
 }
 

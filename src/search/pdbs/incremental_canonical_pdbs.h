@@ -6,6 +6,7 @@
 #include "types.h"
 
 #include "../task_proxy.h"
+#include "../bdd_utils/sym_variables.h"
 
 #include <memory>
 
@@ -13,6 +14,7 @@ namespace pdbs {
 class IncrementalCanonicalPDBs {
     TaskProxy task_proxy;
     PDBType pdb_type;
+    symbolic::SymVariables* sym_variables;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pattern_databases;

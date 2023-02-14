@@ -132,6 +132,11 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const Pattern &pattern = pdb.get_pattern();
     int pdb_size = pdb.get_size();
     int max_pdb_size = 0;
+    symbolic::SymVariables* sym_variables = nullptr;
+    if(pdb_type==PDBType::BDD){
+        symbolic::SymVariables sym_variables_ = symbolic::SymVariables(task_proxy);
+        sym_variables=&sym_variables_;
+    }
     for (int pattern_var : pattern) {
         assert(utils::in_bounds(pattern_var, relevant_neighbours));
         const vector<int> &connected_vars = relevant_neighbours[pattern_var];
@@ -159,7 +164,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
                     */
                     generated_patterns.insert(new_pattern);
                     candidate_pdbs.push_back(
-                        compute_pdb(pdb_type, task_proxy, new_pattern));
+                        compute_pdb(pdb_type, task_proxy, new_pattern, sym_variables));
                     max_pdb_size = max(max_pdb_size,
                                        candidate_pdbs.back()->get_size());
                 }
