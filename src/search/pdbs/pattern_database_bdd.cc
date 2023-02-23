@@ -77,6 +77,7 @@ namespace pdbs {
             while (true) {
                 //TODO: since operations with same cost are already merged, replace loop with "if"
                 for (unsigned int i: index_no_cost) {
+                    currently_evaluated = top;
                     top = apply(transition_relation->transitions[i], top);
                 }
                 //TODO use LEQ or similar instead of checking ...==mgr->bddZero()
