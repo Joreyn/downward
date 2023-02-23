@@ -8,14 +8,17 @@ import project
 
 REPO = project.get_repo_base()
 BENCHMARKS_DIR = os.environ["DOWNWARD_BENCHMARKS"]
-SCP_LOGIN = "myname@myserver.com"
+SCP_LOGIN = "fahmat01@login-infai.scicore.unibas.ch"
 REMOTE_REPOS_DIR = "/infai/seipp/projects"
 # If REVISION_CACHE is None, the default ./data/revision-cache is used.
 REVISION_CACHE = os.environ.get("DOWNWARD_REVISION_CACHE")
 
-SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
-# SUITE = project.SUITE_OPTIMAL_STRIPS
-ENV = project.LocalEnvironment(processes=2)
+if project.REMOTE:
+    SUITE = project.SUITE_OPTIMAL_STRIPS
+    ENV = project.BaselSlurmEnvironment(email="my.name@myhost.ch", partition="infai_2")
+else:
+    SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
+    ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
     (f"explicit", ["--search", "astar(pdb(greedy(pdb_type=explicit),pdb_type=explicit))"]),
     (f"bdd", ["--search", "astar(pdb(greedy(pdb_type=bdd),pdb_type=bdd))"])
@@ -23,18 +26,32 @@ CONFIGS = [
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("main", "main"),
+    ("de46ccdc31c4162260a070a8eee80e4d08b9297f", "23.2.23, first test"),
 ]
 ATTRIBUTES = [
+    "cost",
+    "coverage",
     "error",
+    "evaluations",
+    "expansions",
+    "expansions_until_last_jump",
+    "generated",
+    "memory",
+    "planner_memory",
+    "planner_time",
+    "quality",
     "run_dir",
+    "score_evaluations",
+    "score_expansions",
+    "score_generated",
+    "score_memory",
+    "score_search_time",
+    "score_total_time",
+    "search_time",
+    "total_time",
     "search_start_time",
     "search_start_memory",
-    "total_time",
     "h_values",
-    "coverage",
-    "expansions",
-    "memory",
     project.EVALUATIONS_PER_TIME,
 ]
 
