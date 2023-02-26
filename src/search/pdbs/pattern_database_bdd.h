@@ -12,10 +12,11 @@ class PatternDatabaseBDD : public PatternDatabase {
     TransitionRelation* transition_relation;
     Pattern pattern;
     Cudd* mgr;
-    DdNode* cost_map_dd;
+    //DdNode* cost_map_dd;
     ADD cost_map_add;
     vector<int> domain_sizes_bdd; //Needed for
-    vector<Transition> result; //TODO delete after ADD computed
+    int num_states;
+    const TaskProxy &task_proxy;
 public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
@@ -25,14 +26,13 @@ public:
         bool compute_plan = false,
         const std::shared_ptr<utils::RandomNumberGenerator> &rng = nullptr,
         bool compute_wildcard_plan = false);
-    virtual ~PatternDatabaseBDD() override = default;
-    virtual int get_value(const std::vector<int> &state) const override;
-    virtual const Pattern &get_pattern() const override;
-    virtual int get_size() const override;
-    virtual std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override;
-    virtual double compute_mean_finite_h() const override;
-    virtual bool is_operator_relevant(const OperatorProxy &op) const override;
-    int get_value_bdd(const std::vector<int> &state) const; //TODO delete
+    ~PatternDatabaseBDD() override = default;
+    int get_value(const std::vector<int> &state) const override;
+    const Pattern &get_pattern() const override;
+    int get_size() const override;
+    std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override;
+    double compute_mean_finite_h() const override;
+    bool is_operator_relevant(const OperatorProxy &op) const override;
 
 private:
     Transition apply(const transition::Transition &transition, const Transition& goal);

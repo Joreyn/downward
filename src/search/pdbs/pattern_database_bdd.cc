@@ -3,6 +3,8 @@
 #include <queue>
 #include <limits>
 #include <cmath>
+
+#include "../utils/math.h"
 #include "../utils/logging.h"
 #include "../task_utils/task_properties.h"
 
@@ -19,16 +21,27 @@ namespace pdbs {
             bool compute_plan,
             const shared_ptr<utils::RandomNumberGenerator> &rng,
             bool compute_wildcard_plan)
-    :pattern(pattern){
+    :pattern(pattern),task_proxy(task_proxy){
         task_properties::verify_no_axioms(task_proxy);
         task_properties::verify_no_conditional_effects(task_proxy);
         assert(operator_costs.empty() ||
                operator_costs.size() == task_proxy.get_operators().size());
         assert(utils::is_sorted_unique(pattern));
-        assert(compute_plan==false);
-        assert(compute_wildcard_plan==false);
         for (unsigned int var_id = 0; var_id<task_proxy.get_variables().size();var_id++){
             domain_sizes_bdd.push_back(ceil(log2(task_proxy.get_variables()[var_id].get_domain_size())));
+        }
+
+        num_states = 1;
+        for (int pattern_var_id : pattern) {
+            VariableProxy var = task_proxy.get_variables()[pattern_var_id];
+            if (utils::is_product_within_limit(num_states, var.get_domain_size(),
+                                               numeric_limits<int>::max())) {
+                num_states *= var.get_domain_size();
+            } else {
+                cerr << "Given pattern is too large! (Overflow occured): " << endl;
+                cerr << pattern << endl;
+                utils::exit_with(utils::ExitCode::SEARCH_CRITICAL_ERROR);
+            }
         }
 
 
@@ -61,6 +74,7 @@ namespace pdbs {
         priority_queue<Transition> pq;
         pq.push(goal);
         //TODO edit break condition
+        vector<Transition> pdb_as_bdd;
         while (!pq.empty()) {
             // TODO: initialize variables earlier, despite warning
             Transition top = pq.top();
@@ -77,6 +91,7 @@ namespace pdbs {
             while (true) {
                 //TODO: since operations with same cost are already merged, replace loop with "if"
                 for (unsigned int i: index_no_cost) {
+                    currently_evaluated = top;
                     top = apply(transition_relation->transitions[i], top);
                 }
                 //TODO use LEQ or similar instead of checking ...==mgr->bddZero()
@@ -89,35 +104,25 @@ namespace pdbs {
                     pq.push(top);
                 }
             }
-            result.push_back(currently_evaluated);
+            pdb_as_bdd.push_back(currently_evaluated);
         }
-
-        /* Iteratively remove previous sets from higher cost sets, leading to disjunction
-        for (unsigned int i = result.size()-1; i>0;i--){
-            result[i].bdd=result[i].bdd*!result[i-1].bdd;
-        }*/
         g_log << "creating ADD" << endl;
-        DdNode* temp;
 
         ADD cost;
         ADD constant_max = mgr->constant(numeric_limits<int>::max());
-        cost_map_dd=constant_max.getNode();
         cost_map_add=constant_max;
         ADD temp_add;
-        Cudd_Ref(cost_map_dd);
-        g_log<<result.size()<<endl;
-        for (const Transition& trans : result){
+        g_log << pdb_as_bdd.size() << endl;
+        for (const Transition& trans : pdb_as_bdd){
             cost=mgr->constant(trans.cost);
             temp_add=trans.bdd.Add().Ite(cost,constant_max);
             cost_map_add=cost_map_add.Minimum(temp_add);
-
-
-            temp = Cudd_addIte(mgr->getManager(),trans.bdd.Add().getNode(),mgr->constant(trans.cost).getNode(),constant_max.getNode());
-            Cudd_Ref(temp);
-            cost_map_dd=Cudd_addApply(mgr->getManager(), Cudd_addMinimum, cost_map_dd, temp);
-            Cudd_RecursiveDeref(mgr->getManager(), temp);
         }
         g_log << "pdb created" << endl;
+
+        if (compute_plan){
+
+        }
     }
 
 
@@ -135,7 +140,7 @@ namespace pdbs {
             g_log<<"cost zero transition"<<endl;
             return Transition(_reached.bdd+=reached.bdd, _reached.cost+transition.cost);
         }
-        //TODO: evaluate, whether to use _reached.bdd+=reached.bdd or _reached.bdd this is helpful
+        //TODO: evaluate, whether to use _reached.bdd+=reached.bdd or _reached.bdd
         return Transition(_reached.bdd+=reached.bdd, _reached.cost+transition.cost);
     }
 
@@ -145,21 +150,6 @@ namespace pdbs {
                 _reached.bdd=_reached.bdd.ExistAbstract(bdd);
         }
         return _reached;
-    }
-
-    //TODO delete
-    int PatternDatabaseBDD::get_value_bdd(const vector<int> &state) const {
-        BDD state_as_bdd = mgr->bddOne();
-        for (unsigned int var = 0; var < state.size();var++){
-            state_as_bdd*=transition_relation->preconditions_vector[var][state[var]];
-        }
-        //must be ordered by cost
-        for(const Transition& res : result){
-            if((state_as_bdd * res.bdd != mgr->bddZero())){
-                return res.cost;
-            }
-        }
-        return numeric_limits<int>::max();
     }
 
     //TODO implement with ADD
@@ -174,22 +164,9 @@ namespace pdbs {
                 value = value >> 1;
             }
         }
-        DdNode* eval_dd = Cudd_Eval(mgr->getManager(), cost_map_dd, converted.data());
-        int placeholder = (int) Cudd_V(eval_dd);
 
         ADD eval_add = cost_map_add.Eval(converted.data());
-        int placeholder_add= (int) Cudd_V(eval_add.getNode());
-
-        int res = get_value_bdd(state);
-
-        if(res!=placeholder||res!=placeholder_add||res!=(int) Cudd_V(eval_add.getRegularNode())) {
-            g_log <<endl<< "BDD_value: " << res <<
-                  "DD_value: " << placeholder <<
-                  "ADD_value(CudV)" << placeholder_add <<
-                  "ADD_value(direct)" << (int) Cudd_V(eval_add.getRegularNode()) << endl <<
-                  "ADD eval input: " << converted << endl << endl;
-        }
-        return get_value_bdd(state);
+        return (int) Cudd_V(eval_add.getRegularNode());
     }
 
     const Pattern &PatternDatabaseBDD::get_pattern() const {
@@ -197,17 +174,51 @@ namespace pdbs {
     }
 
     int PatternDatabaseBDD::get_size() const {
+        return num_states;
     }
 
     vector<vector<OperatorID>> &&PatternDatabaseBDD::extract_wildcard_plan() {
 
     }
 
+    //TODO: probably extremely inefficient
     double PatternDatabaseBDD::compute_mean_finite_h() const {
-
+        double sum = 0;
+        int valid_states = 1;
+        vector <int> domain_sizes;
+        for(VariableProxy var : task_proxy.get_variables()){
+            if(std::any_of(pattern.begin(), pattern.end(),[&var](int i){return i==var.get_id();})){
+                valid_states*=var.get_domain_size();
+                domain_sizes[var.get_id()]=var.get_domain_size();
+            }else{
+                domain_sizes[var.get_id()]=1;
+            }
+        }
+        vector<int> current_state(task_proxy.get_variables().size(),0);
+        int last = current_state.size();
+        int i = 1;
+        while(i>-1){
+            sum+= get_value(current_state);
+            i = last;
+            while(current_state[i]++>=domain_sizes[i]){
+                current_state[i]=0;
+                i--;
+                if(i<0){
+                    break;
+                }
+            }
+        }
+        return sum/valid_states;
     };
 
+    //copied from pattern_database_explicit
     bool PatternDatabaseBDD::is_operator_relevant(const OperatorProxy &op) const {
-
+        for (EffectProxy effect : op.get_effects()) {
+            int var_id = effect.get_fact().get_variable().get_id();
+            if (binary_search(pattern.begin(), pattern.end(), var_id)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
