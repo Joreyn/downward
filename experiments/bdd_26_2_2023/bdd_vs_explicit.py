@@ -30,7 +30,7 @@ CONFIGS = [
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("55468b6ccb62c6653f9ebc09469099f09cd9cac3", "test cpdbs"),
+    ("3393b2d0da804ef4299efa40be4b19f06d5b660b", "test cpdbs"),
 ]
 ATTRIBUTES = [
     "cost",
