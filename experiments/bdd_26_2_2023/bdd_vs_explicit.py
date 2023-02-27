@@ -14,10 +14,18 @@ REMOTE_REPOS_DIR = "/infai/seipp/projects"
 REVISION_CACHE = os.environ.get("DOWNWARD_REVISION_CACHE")
 
 if project.REMOTE:
-    SUITE = project.SUITE_OPTIMAL_STRIPS
-    ENV = project.BaselSlurmEnvironment(email="m.fahrni@stud.unibas.ch", partition="infai_2")
+    #SUITE = project.SUITE_OPTIMAL_STRIPS
+    SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
+    ENV = project.BaselSlurmEnvironment(email="m.fahrni@stud.unibas.ch", partition="infai_2",
+    # paths obtained via:
+    # module purge
+    # module -q load CMake/3.15.3-GCCcore-8.3.0
+    # module -q load GCC/8.3.0
+    # echo $PATH
+    # echo $LD_LIBRARY_PATH
+    setup='export PATH=/scicore/soft/apps/binutils/2.32-GCCcore-8.3.0/bin:/scicore/soft/apps/CMake/3.15.3-GCCcore-8.3.0/bin:/scicore/soft/apps/cURL/7.66.0-GCCcore-8.3.0/bin:/scicore/soft/apps/bzip2/1.0.8-GCCcore-8.3.0/bin:/scicore/soft/apps/ncurses/6.1-GCCcore-8.3.0/bin:/scicore/soft/apps/GCCcore/8.3.0/bin:/infai/fahmat01/repos/bin:/infai/fahmat01/local:/export/soft/lua_lmod/centos7/lmod/lmod/libexec:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:$PATH\nexport LD_LIBRARY_PATH=/scicore/soft/apps/binutils/2.32-GCCcore-8.3.0/lib:/scicore/soft/apps/cURL/7.66.0-GCCcore-8.3.0/lib:/scicore/soft/apps/bzip2/1.0.8-GCCcore-8.3.0/lib:/scicore/soft/apps/zlib/1.2.11-GCCcore-8.3.0/lib:/scicore/soft/apps/ncurses/6.1-GCCcore-8.3.0/lib:/scicore/soft/apps/GCCcore/8.3.0/lib64:/scicore/soft/apps/GCCcore/8.3.0/lib')
 else:
-    SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl", "elevators-opt08-strips:prob01.pddl"]
+    SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
     ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
     (f"greedy_explicit", ["--search", "astar(pdb(greedy(pdb_type=explicit),pdb_type=explicit))"]),
@@ -30,7 +38,7 @@ CONFIGS = [
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("3393b2d0da804ef4299efa40be4b19f06d5b660b", "test cpdbs"),
+    ("1f67b621daa0f33670753106d1a76d2752af928d", "test cpdbs, version:23.02.23"),
 ]
 ATTRIBUTES = [
     "cost",
