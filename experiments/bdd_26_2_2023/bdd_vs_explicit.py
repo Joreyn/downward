@@ -14,8 +14,8 @@ REMOTE_REPOS_DIR = "/infai/seipp/projects"
 REVISION_CACHE = os.environ.get("DOWNWARD_REVISION_CACHE")
 
 if project.REMOTE:
-    #SUITE = project.SUITE_OPTIMAL_STRIPS
-    SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
+    SUITE = project.SUITE_OPTIMAL_STRIPS
+    #SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
     ENV = project.BaselSlurmEnvironment(email="m.fahrni@stud.unibas.ch", partition="infai_2",
     # paths obtained via:
     # module purge
