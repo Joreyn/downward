@@ -17,6 +17,7 @@ class PatternDatabaseBDD : public PatternDatabase {
     vector<int> domain_sizes_bdd; //Needed for
     int num_states;
     const TaskProxy &task_proxy;
+    vector<vector<OperatorID>> wildcard_plan;
 public:
     PatternDatabaseBDD(
         const TaskProxy &task_proxy,
@@ -38,6 +39,11 @@ private:
     Transition apply(const transition::Transition &transition, const Transition& goal);
 
     inline Transition &forget(Transition &_reached); //TODO is inline better?
+    void foo(const shared_ptr<utils::RandomNumberGenerator>& rng);
+
+    bool operator_applyable(const vector<int> &state, OperatorProxy op) const;
+
+    vector<int> apply_operator(vector<int> state, OperatorProxy op) const;
 };
 }
 
