@@ -47,9 +47,7 @@ namespace pdbs {
             }
         }
 
-
         transition_relation = new TransitionRelation(task_proxy, (vector<int>) pattern, symVariables);
-        g_log << "TransitionRelation finished" << endl;
 
         mgr = transition_relation->mgr;
 
@@ -104,7 +102,6 @@ namespace pdbs {
         ADD constant_max = mgr->constant(numeric_limits<int>::max());
         cost_map_add = constant_max;
         ADD temp_add;
-        g_log << pdb_as_bdd.size() << endl;
         for (const Transition &trans: pdb_as_bdd) {
             cost = mgr->constant(trans.cost);
             temp_add = trans.bdd.Add().Ite(cost, constant_max);

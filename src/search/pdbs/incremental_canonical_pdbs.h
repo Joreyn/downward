@@ -14,7 +14,7 @@ namespace pdbs {
 class IncrementalCanonicalPDBs {
     TaskProxy task_proxy;
     PDBType pdb_type;
-    symbolic::SymVariables* sym_variables;
+    std::shared_ptr<symbolic::SymVariables> sym_variables;
 
     std::shared_ptr<PatternCollection> patterns;
     std::shared_ptr<PDBCollection> pattern_databases;
