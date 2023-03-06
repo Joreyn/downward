@@ -18,7 +18,7 @@ namespace transition {
 
         OperatorsProxy operators = task_proxy.get_operators();
         //TODO: allocate memory for transRelations here for more speed
-        //map<int, unsigned int> cost_pos;
+        map<int, unsigned int> cost_pos;
         BDD temp;
 
         //TODO: test, whether this works as intended with not unit-cost operations
@@ -53,14 +53,13 @@ namespace transition {
                 }
             }
             //add the associated BDD to the BDD in the vector, which has the same cost
-            //TODO assert correctness (do it via Conjunction tree?)
             int cost = o.get_cost();
-            //if (cost_pos.count(cost)) {
-            //transitions[cost_pos[cost]].bdd += temp;
-            //} else {
-            transitions.emplace_back(temp, cost);
-            //cost_pos[cost] = transitions.size() - 1;
-            //}
+            if (cost_pos.count(cost)) {
+                transitions[cost_pos[cost]].bdd += temp;
+            } else {
+                transitions.emplace_back(temp, cost);
+                cost_pos[cost] = transitions.size() - 1;
+            }
         }
 
 

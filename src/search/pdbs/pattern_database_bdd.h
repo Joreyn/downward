@@ -44,6 +44,8 @@ private:
     bool operator_applyable(const vector<int> &state, OperatorProxy op) const;
 
     vector<int> apply_operator(vector<int> state, OperatorProxy op) const;
+
+    Transition apply_zero_cost_transitions(Transition input_state, int zero_cost_index);
 };
 }
 

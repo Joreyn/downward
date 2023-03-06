@@ -52,63 +52,52 @@ namespace pdbs {
 
         mgr = transition_relation->mgr;
 
+        // Extract the index of zero cost Transition from all defined transitions
+        int index_no_cost = -1;
+        for (unsigned int i = 0; i < transition_relation->transitions.size(); i++) {
+            if (transition_relation->transitions[i].cost != 0) {
+                continue;
+            } else {
+                index_no_cost=i;
+                break;
+            }
+        }
+
         // calc bdd of goal
         Transition goal = Transition(mgr->bddOne(), 0);
         for (const FactProxy &fp: task_proxy.get_goals()) {
             goal.bdd *= transition_relation->fact_to_bdd(fp, false);
         }
+        //expand goal with 0-cost transitions
+        Transition old_states = goal;
+        Transition expanded_states = apply_zero_cost_transitions(old_states, index_no_cost);
 
-        // TODO: (after merging same cost Transitions)
-        //  change index no cost to int, as there will be only one after merging same cost transitions
-
-        // Extract the index of zero cost Transition from all defined transitions
-        vector<unsigned int> index_no_cost;
-        vector<unsigned int> index_with_cost;
-        for (unsigned int i = 0; i < transition_relation->transitions.size(); i++) {
-            if (transition_relation->transitions[i].cost != 0) {
-                index_with_cost.push_back(i);
-            } else {
-                index_no_cost.push_back(i);
-            }
-        }
 
         //TODO use pointers/initialize variables earlier (result only as local variable here)
         priority_queue<Transition> pq;
-        pq.push(goal);
-        //TODO edit break condition
+        pq.push(expanded_states);
+
         vector<Transition> pdb_as_bdd;
+        pdb_as_bdd.push_back(expanded_states);
         while (!pq.empty()) {
             // TODO: initialize variables earlier, despite warning
-            Transition top = pq.top();
-            Transition currently_evaluated = pq.top();
+            old_states = pq.top();
             pq.pop();
-
             //make a single bdd out of all the states with the same cost
-            while (!pq.empty() && (pq.top().cost == currently_evaluated.cost)) {
-                currently_evaluated.bdd += pq.top().bdd;
+            while (!pq.empty() && (pq.top().cost == old_states.cost)) {
+                old_states.bdd += pq.top().bdd;
                 pq.pop();
             }
-            //evaluate the 0 cost transitions first
-            // (it is also directly added for the not zero cost transition relations)
-            while (true) {
-                //TODO: since operations with same cost are already merged, replace loop with "if"
-                for (unsigned int i: index_no_cost) {
-                    currently_evaluated = top;
-                    top = apply(transition_relation->transitions[i], top);
-                }
-                //TODO use LEQ or similar instead of checking ...==mgr->bddZero()
-                if ((top.bdd * !currently_evaluated.bdd) == mgr->bddZero()) break;
-            }
-            for (unsigned int i: index_with_cost) {
-                top = currently_evaluated;
-                top = apply(transition_relation->transitions[i], top);
-                if ((top.bdd * !currently_evaluated.bdd) != mgr->bddZero()) {
-                    pq.push(top);
+            pdb_as_bdd.push_back(old_states);
+
+            for (int index = 0; index<transition_relation->transitions.size();index++){
+                if (index == index_no_cost) continue;
+                expanded_states = apply(transition_relation->transitions[index], old_states);
+                if ((expanded_states.bdd * !old_states.bdd) != mgr->bddZero()) {
+                    pq.push(apply_zero_cost_transitions(expanded_states,index_no_cost));
                 }
             }
-            pdb_as_bdd.push_back(currently_evaluated);
         }
-        g_log << "creating ADD" << endl;
 
         ADD cost;
         ADD constant_max = mgr->constant(numeric_limits<int>::max());
@@ -120,12 +109,8 @@ namespace pdbs {
             temp_add = trans.bdd.Add().Ite(cost, constant_max);
             cost_map_add = cost_map_add.Minimum(temp_add);
         }
-        g_log << "pdb created" << endl;
-
-        //TODO properly handle 0-cost operations
         if (compute_plan) {
             foo(rng);
-
         }
     }
 
@@ -173,7 +158,6 @@ namespace pdbs {
             g_log << "cost zero transition" << endl;
             return Transition(_reached.bdd += reached.bdd, _reached.cost + transition.cost);
         }
-        //TODO: evaluate, whether to use _reached.bdd+=reached.bdd or _reached.bdd
         return Transition(_reached.bdd += reached.bdd, _reached.cost + transition.cost);
     }
 
@@ -183,6 +167,16 @@ namespace pdbs {
             _reached.bdd = _reached.bdd.ExistAbstract(bdd);
         }
         return _reached;
+    }
+    Transition PatternDatabaseBDD::apply_zero_cost_transitions(Transition input_state, int zero_cost_index) {
+        if (zero_cost_index<0) return input_state;
+        Transition new_state = input_state;
+        while (true) {
+            input_state = new_state;
+            new_state = apply(transition_relation->transitions[zero_cost_index], input_state);
+            if ((new_state.bdd * !input_state.bdd) == mgr->bddZero()) break;
+        }
+        return new_state;
     }
 
     //TODO implement with ADD
