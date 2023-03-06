@@ -39,13 +39,15 @@ private:
     Transition apply(const transition::Transition &transition, const Transition& goal);
 
     inline Transition &forget(Transition &_reached); //TODO is inline better?
-    void foo(const shared_ptr<utils::RandomNumberGenerator>& rng);
+    void compute_plan_(const shared_ptr<utils::RandomNumberGenerator>& rng);
 
     bool operator_applyable(const vector<int> &state, OperatorProxy op) const;
 
-    vector<int> apply_operator(vector<int> state, OperatorProxy op) const;
+    vector<int> apply_operator(const vector<int>& state, OperatorProxy op) const;
 
     Transition apply_zero_cost_transitions(Transition input_state, int zero_cost_index);
+
+    bool is_goal(vector<int> state);
 };
 }
 

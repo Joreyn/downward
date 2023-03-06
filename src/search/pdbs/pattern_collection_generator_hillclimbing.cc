@@ -132,48 +132,84 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const Pattern &pattern = pdb.get_pattern();
     int pdb_size = pdb.get_size();
     int max_pdb_size = 0;
-    symbolic::SymVariables* sym_variables = nullptr;
     if(pdb_type==PDBType::BDD){
-        symbolic::SymVariables sym_variables_ = symbolic::SymVariables(task_proxy);
-        sym_variables=&sym_variables_;
-    }
-    for (int pattern_var : pattern) {
-        assert(utils::in_bounds(pattern_var, relevant_neighbours));
-        const vector<int> &connected_vars = relevant_neighbours[pattern_var];
+        symbolic::SymVariables sym_variables = symbolic::SymVariables(task_proxy);
+        for (int pattern_var : pattern) {
+            assert(utils::in_bounds(pattern_var, relevant_neighbours));
+            const vector<int> &connected_vars = relevant_neighbours[pattern_var];
 
-        // Only use variables which are not already in the pattern.
-        vector<int> relevant_vars;
-        set_difference(
-            connected_vars.begin(), connected_vars.end(),
-            pattern.begin(), pattern.end(),
-            back_inserter(relevant_vars));
+            // Only use variables which are not already in the pattern.
+            vector<int> relevant_vars;
+            set_difference(
+                    connected_vars.begin(), connected_vars.end(),
+                    pattern.begin(), pattern.end(),
+                    back_inserter(relevant_vars));
 
-        for (int rel_var_id : relevant_vars) {
-            VariableProxy rel_var = task_proxy.get_variables()[rel_var_id];
-            int rel_var_size = rel_var.get_domain_size();
-            if (utils::is_product_within_limit(pdb_size, rel_var_size,
-                                               pdb_max_size)) {
-                Pattern new_pattern(pattern);
-                new_pattern.push_back(rel_var_id);
-                sort(new_pattern.begin(), new_pattern.end());
-                if (!generated_patterns.count(new_pattern)) {
-                    /*
-                      If we haven't seen this pattern before, generate a PDB
-                      for it and add it to candidate_pdbs if its size does not
-                      surpass the size limit.
-                    */
-                    generated_patterns.insert(new_pattern);
-                    candidate_pdbs.push_back(
-                        compute_pdb(pdb_type, task_proxy, new_pattern, sym_variables));
-                    max_pdb_size = max(max_pdb_size,
-                                       candidate_pdbs.back()->get_size());
+            for (int rel_var_id : relevant_vars) {
+                VariableProxy rel_var = task_proxy.get_variables()[rel_var_id];
+                int rel_var_size = rel_var.get_domain_size();
+                if (utils::is_product_within_limit(pdb_size, rel_var_size,
+                                                   pdb_max_size)) {
+                    Pattern new_pattern(pattern);
+                    new_pattern.push_back(rel_var_id);
+                    sort(new_pattern.begin(), new_pattern.end());
+                    if (!generated_patterns.count(new_pattern)) {
+                        /*
+                          If we haven't seen this pattern before, generate a PDB
+                          for it and add it to candidate_pdbs if its size does not
+                          surpass the size limit.
+                        */
+                        generated_patterns.insert(new_pattern);
+                        candidate_pdbs.push_back(
+                                compute_pdb(pdb_type, task_proxy, new_pattern, &sym_variables));
+                        max_pdb_size = max(max_pdb_size,
+                                           candidate_pdbs.back()->get_size());
+                    }
+                } else {
+                    ++num_rejected;
                 }
-            } else {
-                ++num_rejected;
             }
         }
+        return max_pdb_size;
+    }else{
+        for (int pattern_var : pattern) {
+            assert(utils::in_bounds(pattern_var, relevant_neighbours));
+            const vector<int> &connected_vars = relevant_neighbours[pattern_var];
+
+            // Only use variables which are not already in the pattern.
+            vector<int> relevant_vars;
+            set_difference(
+                    connected_vars.begin(), connected_vars.end(),
+                    pattern.begin(), pattern.end(),
+                    back_inserter(relevant_vars));
+
+            for (int rel_var_id : relevant_vars) {
+                VariableProxy rel_var = task_proxy.get_variables()[rel_var_id];
+                int rel_var_size = rel_var.get_domain_size();
+                if (utils::is_product_within_limit(pdb_size, rel_var_size,
+                                                   pdb_max_size)) {
+                    Pattern new_pattern(pattern);
+                    new_pattern.push_back(rel_var_id);
+                    sort(new_pattern.begin(), new_pattern.end());
+                    if (!generated_patterns.count(new_pattern)) {
+                        /*
+                          If we haven't seen this pattern before, generate a PDB
+                          for it and add it to candidate_pdbs if its size does not
+                          surpass the size limit.
+                        */
+                        generated_patterns.insert(new_pattern);
+                        candidate_pdbs.push_back(
+                                compute_pdb(pdb_type, task_proxy, new_pattern, nullptr));
+                        max_pdb_size = max(max_pdb_size,
+                                           candidate_pdbs.back()->get_size());
+                    }
+                } else {
+                    ++num_rejected;
+                }
+            }
+        }
+        return max_pdb_size;
     }
-    return max_pdb_size;
 }
 
 void PatternCollectionGeneratorHillclimbing::sample_states(

@@ -3,6 +3,7 @@
 #include <queue>
 #include <limits>
 #include <cmath>
+#include <utility>
 
 #include "../utils/math.h"
 #include "../utils/logging.h"
@@ -58,7 +59,7 @@ namespace pdbs {
             if (transition_relation->transitions[i].cost != 0) {
                 continue;
             } else {
-                index_no_cost=i;
+                index_no_cost = i;
                 break;
             }
         }
@@ -90,11 +91,11 @@ namespace pdbs {
             }
             pdb_as_bdd.push_back(old_states);
 
-            for (int index = 0; index<transition_relation->transitions.size();index++){
+            for (int index = 0; index < transition_relation->transitions.size(); index++) {
                 if (index == index_no_cost) continue;
                 expanded_states = apply(transition_relation->transitions[index], old_states);
                 if ((expanded_states.bdd * !old_states.bdd) != mgr->bddZero()) {
-                    pq.push(apply_zero_cost_transitions(expanded_states,index_no_cost));
+                    pq.push(apply_zero_cost_transitions(expanded_states, index_no_cost));
                 }
             }
         }
@@ -110,36 +111,49 @@ namespace pdbs {
             cost_map_add = cost_map_add.Minimum(temp_add);
         }
         if (compute_plan) {
-            foo(rng);
+            compute_plan_(rng);
         }
     }
 
-    void PatternDatabaseBDD::foo(const shared_ptr<utils::RandomNumberGenerator> &rng) {
-        //vector<int> generating_op_ids;
+    //compute plan using BFS (thus using no rng)
+    void PatternDatabaseBDD::compute_plan_(const shared_ptr<utils::RandomNumberGenerator> &rng) {
+        struct GeneratedState {
+            vector<int> op_ids;
+            vector<int> state;
+            int h;
+
+            GeneratedState(vector<int> op_ids, vector<int> state, int h)
+                    : op_ids(std::move(op_ids)),
+                      state(std::move(state)),
+                      h(h) {};
+
+        };
+        auto comparator = [](const GeneratedState &a, const GeneratedState &b) { return a.h < b.h; };
+        priority_queue<GeneratedState, vector<GeneratedState>, decltype(comparator)> pq(comparator);
         task_proxy.get_initial_state().unpack();
-        vector<int> old_state = task_proxy.get_initial_state().get_unpacked_values();
-        vector<int> new_state = task_proxy.get_initial_state().get_unpacked_values();
-        int op_size = task_proxy.get_operators().size();
-        bool change_happened = true;
-        int random_index = 0;
-        int current_index = 0;
-        OperatorsProxy operators = task_proxy.get_operators();
-        while (get_value(old_state) != 0 && change_happened) {
-            change_happened = false;
-            random_index = rng->random(op_size);
-            for (int i = 0; i < op_size; i++) {
-                current_index = (random_index + i) % op_size;
-                if (!is_operator_relevant(operators[current_index])||!operator_applyable(old_state, operators[current_index]))continue;
-                new_state = apply_operator(old_state, operators[current_index]);
-                if (get_value(new_state) + operators[current_index].get_cost() == get_value(old_state)){
-                    //generating_op_ids.push_back(operators[current_index].get_id());
-                    wildcard_plan.emplace_back();
-                    wildcard_plan.back().emplace_back(current_index);
-                    old_state = new_state;
-                    break;
+        vector<int> initial_state = task_proxy.get_initial_state().get_unpacked_values();
+        pq.emplace(vector<int>(), initial_state, get_value(initial_state));
+        GeneratedState old = pq.top();
+        GeneratedState applied = pq.top();
+        vector<int> new_state;
+        while (!pq.empty()) {
+            old = pq.top();
+            pq.pop();
+            for (OperatorProxy op: task_proxy.get_operators()) {
+                new_state = apply_operator(old.state, op);
+                applied = GeneratedState(applied.op_ids, new_state, get_value(new_state));
+                applied.op_ids.push_back(op.get_id());
+                if (applied.h + op.get_cost() == old.h) {
+                    if (is_goal(applied.state)) {
+                        for (int op_id: applied.op_ids) {
+                            wildcard_plan.emplace_back();
+                            wildcard_plan.back().emplace_back(op_id);
+                        }
+                        return;
+                    }
+                    pq.push(applied);
                 }
             }
-
         }
     }
 
@@ -168,8 +182,9 @@ namespace pdbs {
         }
         return _reached;
     }
+
     Transition PatternDatabaseBDD::apply_zero_cost_transitions(Transition input_state, int zero_cost_index) {
-        if (zero_cost_index<0) return input_state;
+        if (zero_cost_index < 0) return input_state;
         Transition new_state = input_state;
         while (true) {
             input_state = new_state;
@@ -258,12 +273,23 @@ namespace pdbs {
         return true;
     }
 
-    vector<int> PatternDatabaseBDD::apply_operator(vector<int> state, OperatorProxy op) const {
-        for(EffectProxy eff:op.get_effects()){
-            //if (any_of(pattern.begin(), pattern.end(),[&eff](int i) {return i==eff.get_fact().get_variable().get_id();})){
-            state[eff.get_fact().get_variable().get_id()]=eff.get_fact().get_value();
-            //}
+    vector<int> PatternDatabaseBDD::apply_operator(const vector<int> &state, OperatorProxy op) const {
+        vector<int> new_state = state;
+        for (EffectProxy eff: op.get_effects()) {
+            if (any_of(pattern.begin(), pattern.end(),
+                       [&eff](int i) { return i == eff.get_fact().get_variable().get_id(); })) {
+                new_state[eff.get_fact().get_variable().get_id()] = eff.get_fact().get_value();
+            }
         }
-        return state;
+        return new_state;
+    }
+
+    bool PatternDatabaseBDD::is_goal(vector<int> state) {
+        for (FactProxy goal: task_proxy.get_goals()) {
+            if (any_of(pattern.begin(), pattern.end(), [&goal](int i) { return (i == goal.get_value()); }) &&
+                state[goal.get_variable().get_id()] != goal.get_value())
+                return false;
+        }
+        return true;
     }
 }
