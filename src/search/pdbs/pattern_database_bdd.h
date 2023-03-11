@@ -12,7 +12,6 @@ class PatternDatabaseBDD : public PatternDatabase {
     TransitionRelation* transition_relation;
     Pattern pattern;
     Cudd* mgr;
-    //DdNode* cost_map_dd;
     ADD cost_map_add;
     vector<int> domain_sizes_bdd; //Needed for
     int num_states;
@@ -45,7 +44,7 @@ private:
 
     vector<int> apply_operator(const vector<int>& state, OperatorProxy op) const;
 
-    Transition apply_zero_cost_transitions(Transition input_state, int zero_cost_index);
+    Transition apply_zero_cost_transitions(Transition input_state, unsigned int zero_cost_index);
 
     bool is_goal(vector<int> state);
 };

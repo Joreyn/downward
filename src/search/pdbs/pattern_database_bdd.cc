@@ -47,12 +47,13 @@ namespace pdbs {
             }
         }
 
-        transition_relation = new TransitionRelation(task_proxy, (vector<int>) pattern, symVariables);
+        assert(symVariables!= nullptr);
+        transition_relation = new TransitionRelation(task_proxy, pattern, symVariables);
 
         mgr = transition_relation->mgr;
 
         // Extract the index of zero cost Transition from all defined transitions
-        int index_no_cost = -1;
+        unsigned int index_no_cost = numeric_limits<unsigned int>::max();
         for (unsigned int i = 0; i < transition_relation->transitions.size(); i++) {
             if (transition_relation->transitions[i].cost != 0) {
                 continue;
@@ -89,11 +90,12 @@ namespace pdbs {
             }
             pdb_as_bdd.push_back(old_states);
 
-            for (int index = 0; index < transition_relation->transitions.size(); index++) {
+            for (unsigned int index = 0; index < transition_relation->transitions.size(); index++) {
                 if (index == index_no_cost) continue;
                 expanded_states = apply(transition_relation->transitions[index], old_states);
                 if ((expanded_states.bdd * !old_states.bdd) != mgr->bddZero()) {
-                    pq.push(apply_zero_cost_transitions(expanded_states, index_no_cost));
+                    expanded_states = apply_zero_cost_transitions(expanded_states, index_no_cost);
+                    pq.push(expanded_states);
                 }
             }
         }
@@ -123,35 +125,43 @@ namespace pdbs {
                     : op_ids(std::move(op_ids)),
                       state(std::move(state)),
                       h(h) {};
-
         };
-        auto comparator = [](const GeneratedState &a, const GeneratedState &b) { return a.h < b.h; };
+        auto comparator = [](const GeneratedState &a, const GeneratedState &b) { return a.h > b.h; };
         priority_queue<GeneratedState, vector<GeneratedState>, decltype(comparator)> pq(comparator);
         task_proxy.get_initial_state().unpack();
         vector<int> initial_state = task_proxy.get_initial_state().get_unpacked_values();
+        //TODO task_proxy.get_initial_state().get_unregistered_successor();
         pq.emplace(vector<int>(), initial_state, get_value(initial_state));
         GeneratedState old = pq.top();
         GeneratedState applied = pq.top();
         vector<int> new_state;
+        g_log<<"computing plan: "<<endl;
+        g_log<<"h_value of init: "<< old.h << endl;
         while (!pq.empty()) {
+            g_log<<"entered while loop: "<<endl;
             old = pq.top();
             pq.pop();
             for (OperatorProxy op: task_proxy.get_operators()) {
+                //TODO: add operator applyable
                 new_state = apply_operator(old.state, op);
                 applied = GeneratedState(applied.op_ids, new_state, get_value(new_state));
                 applied.op_ids.push_back(op.get_id());
-                if (applied.h + op.get_cost() == old.h) {
+                if (((applied.h + op.get_cost()) == old.h)) {
+                    g_log<<"pushing: "<<endl;
+                    pq.push(applied);
                     if (is_goal(applied.state)) {
+                        g_log<<"printing plan: "<<endl;
                         for (int op_id: applied.op_ids) {
+                            g_log<<op_id<<endl;
                             wildcard_plan.emplace_back();
                             wildcard_plan.back().emplace_back(op_id);
                         }
                         return;
                     }
-                    pq.push(applied);
                 }
             }
         }
+        g_log<<"after while loop: (implies bug)"<<endl;
     }
 
 
@@ -180,8 +190,8 @@ namespace pdbs {
         return _reached;
     }
 
-    Transition PatternDatabaseBDD::apply_zero_cost_transitions(Transition input_state, int zero_cost_index) {
-        if (zero_cost_index < 0) return input_state;
+    Transition PatternDatabaseBDD::apply_zero_cost_transitions(Transition input_state, unsigned int zero_cost_index) {
+        if ((zero_cost_index == numeric_limits<unsigned int>::max())) return input_state;
         Transition new_state = input_state;
         while (true) {
             input_state = new_state;
@@ -263,14 +273,15 @@ namespace pdbs {
 
     bool PatternDatabaseBDD::operator_applyable(const vector<int> &state, OperatorProxy op) const {
         for (auto prec: op.get_preconditions()) {
-            if (state[prec.get_variable().get_id()] != prec.get_value() &&
-                any_of(pattern.begin(), pattern.end(), [&prec](int i) { return prec.get_variable().get_id() == i; }))
+            if ((state[prec.get_variable().get_id()] != prec.get_value()) &&
+                binary_search(pattern.begin(), pattern.end(), prec.get_variable().get_id()))
                 return false;
         }
         return true;
     }
 
     vector<int> PatternDatabaseBDD::apply_operator(const vector<int> &state, OperatorProxy op) const {
+        if(!operator_applyable(state,op)) return state;
         vector<int> new_state = state;
         for (EffectProxy eff: op.get_effects()) {
             if (any_of(pattern.begin(), pattern.end(),

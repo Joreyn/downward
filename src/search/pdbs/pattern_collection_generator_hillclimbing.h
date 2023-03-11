@@ -5,6 +5,7 @@
 #include "types.h"
 
 #include "../task_proxy.h"
+#include "../bdd_utils/sym_variables.h"
 
 #include <cstdlib>
 #include <memory>
@@ -42,6 +43,8 @@ class PatternCollectionGeneratorHillclimbing : public PatternCollectionGenerator
     // for stats only
     int num_rejected;
     utils::CountdownTimer *hill_climbing_timer;
+
+    shared_ptr<symbolic::SymVariables> sym_variables;
 
     /*
       For the given PDB, all possible extensions of its pattern by one

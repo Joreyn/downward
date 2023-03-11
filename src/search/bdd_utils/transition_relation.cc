@@ -6,9 +6,6 @@ using namespace symbolic;
 using namespace utils;
 namespace transition {
     TransitionRelation::TransitionRelation(const TaskProxy &task_proxy, vector<int> pattern, SymVariables* symVariables) {
-        //TODO: don't create new SymVariables for same taskProxy
-        //SymVariables symVariables = SymVariables(task_proxy);
-
         mgr = symVariables->getMgr();
         bdd_variables = symVariables->getVariables();
         primed_bdd_variables = symVariables->getPrimedBddVariables();
@@ -16,7 +13,6 @@ namespace transition {
         preconditions_vector = symVariables->getPreconditionsVector();
         biimplication = symVariables->getBiimplication();
 
-        OperatorsProxy operators = task_proxy.get_operators();
         //TODO: allocate memory for transRelations here for more speed
         map<int, unsigned int> cost_pos;
         BDD temp;
@@ -26,30 +22,27 @@ namespace transition {
         // TODO: if the preconditions and effects of a operator are ordered by var_id,
         //  this can be simplified to remove the usage of std::count (possibly priorityqueue)
         //   and it can be be further simplified, if pattern is ordered by var_id
-        vector<int> zero_vector(task_proxy.get_variables().size());
-        vector<int> effect_plus_precondition(task_proxy.get_variables().size());
-        for (OperatorProxy o: operators) {
+        vector<bool> zero_vector(task_proxy.get_variables().size(), false);
+        vector<bool> has_effect(task_proxy.get_variables().size());
+        for (OperatorProxy o: task_proxy.get_operators()) {
             temp = mgr->bddOne();
-            effect_plus_precondition = zero_vector;
+            has_effect = zero_vector;
             for (EffectProxy eff: o.get_effects()) {
-                if (count(pattern.begin(), pattern.end(), eff.get_fact().get_variable().get_id())) {
+                if (binary_search(pattern.begin(), pattern.end(), eff.get_fact().get_variable().get_id())) {
                     temp *= fact_to_bdd(eff.get_fact(), true);
-                    effect_plus_precondition[eff.get_fact().get_variable().get_id()] = 1;
+                    has_effect[eff.get_fact().get_variable().get_id()] = true;
                 }
             }
             for (FactProxy prec: o.get_preconditions()) {
-                if (count(pattern.begin(), pattern.end(), prec.get_variable().get_id())) {
+                if (binary_search(pattern.begin(), pattern.end(), prec.get_variable().get_id())) {
                     temp *= fact_to_bdd(prec, false);
                 }
             }
             //add biimplication if needed
-            for (unsigned int i = 0; i < effect_plus_precondition.size(); i++) {
-                if (effect_plus_precondition[i] == 0 &&
-                    count(pattern.begin(), pattern.end(), i)) {
+            for (unsigned int i = 0; i < has_effect.size(); i++) {
+                if ((!has_effect[i]) &&
+                    binary_search(pattern.begin(), pattern.end(), i)) {
                         temp *= biimplication[i];
-                } else if (effect_plus_precondition[i] > 1 || effect_plus_precondition[i] < 0) {
-                    //TODO remove message, before turning in
-                    g_log << "something terrible has happened" << endl;
                 }
             }
             //add the associated BDD to the BDD in the vector, which has the same cost
@@ -57,12 +50,11 @@ namespace transition {
             if (cost_pos.count(cost)) {
                 transitions[cost_pos[cost]].bdd += temp;
             } else {
-                transitions.emplace_back(temp, cost);
+                Transition tr = Transition(temp, cost);
+                transitions.push_back(tr);
                 cost_pos[cost] = transitions.size() - 1;
             }
         }
-
-
     }
 
     BDD TransitionRelation::fact_to_bdd(FactProxy fact_proxy, bool is_effect) {

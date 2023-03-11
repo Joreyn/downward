@@ -18,7 +18,7 @@ IncrementalCanonicalPDBs::IncrementalCanonicalPDBs(
       pattern_cliques(nullptr),
       size(0) {
     pattern_databases->reserve(patterns->size());
-    if(pdb_type==PDBType::BDD){
+    if((pdb_type==PDBType::BDD)&&(sym_variables== nullptr)){
         //TODO possible debug
         sym_variables= make_shared<symbolic::SymVariables>(task_proxy);
     } else {

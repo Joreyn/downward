@@ -132,8 +132,7 @@ int PatternCollectionGeneratorHillclimbing::generate_candidate_pdbs(
     const Pattern &pattern = pdb.get_pattern();
     int pdb_size = pdb.get_size();
     int max_pdb_size = 0;
-    shared_ptr<symbolic::SymVariables> sym_variables;
-    if(pdb_type==PDBType::BDD){
+    if((pdb_type==PDBType::BDD)&&(sym_variables==nullptr)){
         sym_variables = make_shared<symbolic::SymVariables>(symbolic::SymVariables(task_proxy));
     }
 
