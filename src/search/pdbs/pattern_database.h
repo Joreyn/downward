@@ -30,7 +30,7 @@ extern std::shared_ptr<PatternDatabase> compute_pdb(
     PDBType pdb_type,
     const TaskProxy &task_proxy,
     const Pattern &pattern,
-    symbolic::SymVariables* sym_variables,
+    symbolic::SymVariables* sym_variables = nullptr,
     const std::vector<int> &operator_costs = std::vector<int>(),
     bool compute_plan = false,
     const std::shared_ptr<utils::RandomNumberGenerator> &rng = nullptr,

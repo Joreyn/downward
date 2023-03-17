@@ -33,7 +33,6 @@ namespace pdbs {
         for (unsigned int var_id = 0; var_id < task_proxy.get_variables().size(); var_id++) {
             domain_sizes_bdd.push_back(ceil(log2(task_proxy.get_variables()[var_id].get_domain_size())));
         }
-
         num_states = 1;
         for (int pattern_var_id: pattern) {
             VariableProxy var = task_proxy.get_variables()[pattern_var_id];
@@ -66,7 +65,9 @@ namespace pdbs {
         // calc bdd of goal
         Transition goal = Transition(mgr->bddOne(), 0);
         for (const FactProxy &fp: task_proxy.get_goals()) {
-            goal.bdd *= transition_relation->fact_to_bdd(fp, false);
+            if(binary_search(pattern.begin(), pattern.end(),fp.get_variable().get_id())) {
+                goal.bdd *= transition_relation->fact_to_bdd(fp, false);
+            }
         }
         //expand goal with 0-cost transitions
         Transition old_states = goal;
@@ -104,7 +105,7 @@ namespace pdbs {
         ADD constant_max = mgr->constant(numeric_limits<int>::max());
         cost_map_add = constant_max;
         ADD temp_add;
-        for (const Transition &trans: pdb_as_bdd) {
+        for (const Transition& trans: pdb_as_bdd) {
             cost = mgr->constant(trans.cost);
             temp_add = trans.bdd.Add().Ite(cost, constant_max);
             cost_map_add = cost_map_add.Minimum(temp_add);
@@ -135,10 +136,7 @@ namespace pdbs {
         GeneratedState old = pq.top();
         GeneratedState applied = pq.top();
         vector<int> new_state;
-        g_log<<"computing plan: "<<endl;
-        g_log<<"h_value of init: "<< old.h << endl;
         while (!pq.empty()) {
-            g_log<<"entered while loop: "<<endl;
             old = pq.top();
             pq.pop();
             for (OperatorProxy op: task_proxy.get_operators()) {
@@ -147,12 +145,9 @@ namespace pdbs {
                 applied = GeneratedState(applied.op_ids, new_state, get_value(new_state));
                 applied.op_ids.push_back(op.get_id());
                 if (((applied.h + op.get_cost()) == old.h)) {
-                    g_log<<"pushing: "<<endl;
                     pq.push(applied);
                     if (is_goal(applied.state)) {
-                        g_log<<"printing plan: "<<endl;
                         for (int op_id: applied.op_ids) {
-                            g_log<<op_id<<endl;
                             wildcard_plan.emplace_back();
                             wildcard_plan.back().emplace_back(op_id);
                         }
@@ -161,24 +156,17 @@ namespace pdbs {
                 }
             }
         }
-        g_log<<"after while loop: (implies bug)"<<endl;
     }
 
 
     //TODO: rename function, as the conjunction is also included here
     Transition PatternDatabaseBDD::apply(const Transition &transition, const Transition &reached) {
-        //g_log << "apply" << endl;
         Transition _reached = reached;
-        //TODO understand _reached.bdd.AdjPermuteX() and evaluate whether it would be faster
         _reached.bdd = _reached.bdd.SwapVariables(transition_relation->primed_bdd_variables,
                                                   transition_relation->bdd_variables);
         _reached.bdd *= transition.bdd;
         _reached = forget(_reached);
 
-        if (transition.cost == 0) {
-            g_log << "cost zero transition" << endl;
-            return Transition(_reached.bdd += reached.bdd, _reached.cost + transition.cost);
-        }
         return Transition(_reached.bdd += reached.bdd, _reached.cost + transition.cost);
     }
 
@@ -213,9 +201,8 @@ namespace pdbs {
                 value = value >> 1;
             }
         }
-
         ADD eval_add = cost_map_add.Eval(converted.data());
-        return (int) Cudd_V(eval_add.getRegularNode());
+        return static_cast<int>(Cudd_V(eval_add.getRegularNode()));
     }
 
     const Pattern &PatternDatabaseBDD::get_pattern() const {

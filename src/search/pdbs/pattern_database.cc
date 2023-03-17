@@ -11,7 +11,7 @@ shared_ptr<PatternDatabase> compute_pdb(
     PDBType pdb_type,
     const TaskProxy &task_proxy,
     const Pattern &pattern,
-    symbolic::SymVariables* sym_variables = nullptr,
+    symbolic::SymVariables* sym_variables,
     const vector<int> &operator_costs,
     bool compute_plan,
     const shared_ptr<utils::RandomNumberGenerator> &rng,
