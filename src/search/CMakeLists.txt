@@ -140,21 +140,3 @@ add_dependencies(translate libcudd)
 add_dependencies(downward libcudd)
 target_link_libraries(downward ${downward_BINARY_DIR}/libcudd-prefix/src/libcudd-build/cudd/.libs/libcudd.a)
 
-
-### Meddly
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/meddly/src)
-
-# the --without-gmp flag does not work properly -> gmp is still needed for make, because of the examples folder
-ExternalProject_add(
-        meddly
-        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/meddly/
-        CONFIGURE_COMMAND autoreconf ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/meddly/ --force --install --verbose && ${CMAKE_CURRENT_SOURCE_DIR}/../dd_libs/meddly/configure --enable-obj --enable-silent-rules --without-gmp
-        BUILD_COMMAND make
-        INSTALL_COMMAND make install
-        BUILD_IN_SOURCE 0
-)
-
-add_dependencies(translate meddly)
-add_dependencies(downward meddly)
-target_link_libraries(downward ${downward_BINARY_DIR}/meddly-prefix/src/meddly-build/lib/libmeddly.a)
-

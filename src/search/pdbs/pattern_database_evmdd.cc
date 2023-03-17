@@ -1,7 +1,6 @@
 #include "pattern_database_evmdd.h"
 #include "../utils/logging.h"
 
-#include <meddly.h>
 
 using namespace std;
 
@@ -14,13 +13,14 @@ PatternDatabaseEVMDD::PatternDatabaseEVMDD(
     const shared_ptr<utils::RandomNumberGenerator> &rng,
     bool compute_wildcard_plan) {
 
+    /*
     MEDDLY::initialize();
     MEDDLY::domain *domain = MEDDLY::createDomain();
     //TODO add policies
     MEDDLY::forest *transitions = domain->createForest(true, MEDDLY::forest::INTEGER, MEDDLY::forest::EVPLUS);
     MEDDLY::dd_edge ddEdge(transitions);
 
-    /*
+
     transitions->evaluate()
     domain->createVariablesBottomUp();
     MEDDLY::createVariable()
