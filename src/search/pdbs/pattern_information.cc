@@ -2,6 +2,7 @@
 
 #include "pattern_database.h"
 #include "validation.h"
+#include "../utils/logging.h"
 
 #include <cassert>
 
@@ -49,6 +50,7 @@ const Pattern &PatternInformation::get_pattern() const {
 
 shared_ptr<PatternDatabase> PatternInformation::get_pdb(PDBType pdb_type) {
     create_pdb_if_missing(pdb_type);
+    utils::g_log << "PDB: size = "<< pdb->get_size()<<endl;
     return pdb;
 }
 }

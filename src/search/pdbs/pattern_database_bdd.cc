@@ -113,6 +113,7 @@ namespace pdbs {
         if (compute_plan) {
             compute_plan_(rng);
         }
+        num_nodes=cost_map_add.nodeCount();
     }
 
     //compute plan using BFS (thus using no rng)
@@ -189,7 +190,6 @@ namespace pdbs {
         return new_state;
     }
 
-    //TODO implement with ADD
     int PatternDatabaseBDD::get_value(const vector<int> &state) const {
         vector<int> converted;
         int value;
@@ -210,7 +210,7 @@ namespace pdbs {
     }
 
     int PatternDatabaseBDD::get_size() const {
-        return num_states;
+        return num_nodes;
     }
 
     vector<vector<OperatorID>> &&PatternDatabaseBDD::extract_wildcard_plan() {

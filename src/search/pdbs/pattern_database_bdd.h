@@ -15,6 +15,7 @@ class PatternDatabaseBDD : public PatternDatabase {
     ADD cost_map_add;
     vector<int> domain_sizes_bdd; //Needed for
     int num_states;
+    int num_nodes;
     const TaskProxy &task_proxy;
     vector<vector<OperatorID>> wildcard_plan;
 public:
