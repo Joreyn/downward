@@ -186,6 +186,10 @@ public:
         return num_states;
     }
 
+    virtual int get_rel_size() const override {
+        return num_states;
+    }
+
     virtual std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override {
         return std::move(wildcard_plan);
     };

@@ -31,6 +31,7 @@ public:
     int get_value(const std::vector<int> &state) const override;
     const Pattern &get_pattern() const override;
     int get_size() const override;
+    int get_rel_size() const override;
     std::vector<std::vector<OperatorID>> && extract_wildcard_plan() override;
     double compute_mean_finite_h() const override;
     bool is_operator_relevant(const OperatorProxy &op) const override;
