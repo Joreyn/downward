@@ -18,6 +18,19 @@ class CommonParser(Parser):
 
         self.add_function(find_all_occurences, file=file)
 
+    def add_sum_pattern(
+        self, name, regex, file="run.log", required=False, type=int
+    ):
+        def sum_all_occurences(content, props):
+            matches = re.findall(regex, content)
+            if required and not matches:
+                logging.error(f"Pattern {regex} not found in file {file}")
+            props[name]=0
+            for m in matches:
+                props[name] += type(m)
+
+        self.add_function(sum_all_occurences, file=file)
+
     def add_bottom_up_pattern(
         self, name, regex, file="run.log", required=False, type=int
     ):
@@ -34,24 +47,29 @@ class CommonParser(Parser):
 
 def main():
     parser = CommonParser()
-    parser.add_bottom_up_pattern(
-        "search_start_time",
-        r"\[t=(.+)s, \d+ KB\] g=0, 1 evaluated, 0 expanded",
+    parser.add_sum_pattern(
+        "PDB_create_time",
+        r"\[t=(.+)s, \d+ KB\] PDB: creating...",
         type=float,
     )
-    parser.add_bottom_up_pattern(
-        "search_start_memory",
-        r"\[t=.+s, (\d+) KB\] g=0, 1 evaluated, 0 expanded",
+    parser.add_sum_pattern(
+        "PDB_finished_time",
+        r"\[t=(.+)s, \d+ KB\] PDB: size=",
+        type=float,
+    )
+    parser.add_sum_pattern(
+        "PDB_before_memory",
+        r"\[t=.+s, (\d+) KB\] PDB: creating...",
         type=int,
     )
-    parser.add_pattern(
-        "initial_h_value",
-        r"f = (\d+) \[1 evaluated, 0 expanded, t=.+s, \d+ KB\]",
+    parser.add_sum_pattern(
+        "PDB_after_memory",
+        r"\[t=.+s, (\d+) KB\] PDB: size=",
         type=int,
     )
-    parser.add_repeated_pattern(
-        "h_values",
-        r"New best heuristic value for .+: (\d+)\n",
+    parser.add_sum_pattern(
+        "PDB_rel_size",
+        r"\[t=.+s, \d+ KB\] PDB: size=(\d+)",
         type=int,
     )
     parser.parse()

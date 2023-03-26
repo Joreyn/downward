@@ -8,6 +8,9 @@ from downward.experiment import FastDownwardExperiment
 from downward.reports.absolute import AbsoluteReport
 from downward.reports.scatter import ScatterPlotReport
 from downward.reports.taskwise import TaskwiseReport
+from downward.reports.compare import ComparativeReport
+from downward.reports import PlanningReport
+
 from lab import tools
 from lab.environments import (
     BaselSlurmEnvironment,
@@ -26,6 +29,7 @@ assert (
     and ScatterPlotReport
     and TaskwiseReport
     and TetralithEnvironment
+    and ComparativeReport
 )
 
 

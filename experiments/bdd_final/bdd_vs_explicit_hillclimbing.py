@@ -28,8 +28,8 @@ else:
     SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl", "tetris-opt14-strips:p03-4.pddl"]
     ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
-    (f"pdb_gre_exp", ["--search", "astar(pdb(greedy(pdb_type=explicit), pdb_type=explicit))"]),
-    (f"pdb_gre_bdd", ["--search", "astar(pdb(greedy(pdb_type=bdd), pdb_type=bdd))"])
+    (f"cpdbs_hill_exp", ["--search", "astar(cpdbs(pdb_type=explicit, patterns=hillclimbing(max_time=900, pdb_type=explicit)))"]),
+    (f"cpdbs_hill_bdd", ["--search", "astar(cpdbs(pdb_type=bdd, patterns=hillclimbing(max_time=900, pdb_type=bdd)))"])
 ]
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]

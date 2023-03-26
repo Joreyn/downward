@@ -4,7 +4,7 @@ import os
 import shutil
 
 import project
-
+from custom_filter import CustomFilter
 
 REPO = project.get_repo_base()
 BENCHMARKS_DIR = os.environ["DOWNWARD_BENCHMARKS"]
@@ -28,13 +28,13 @@ else:
     SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl", "tetris-opt14-strips:p03-4.pddl"]
     ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
-    (f"cegar_exp", ["--search", "astar(pdb(cegar_pattern(pdb_type=explicit),pdb_type=explicit))"]),
-    (f"cegar_bdd", ["--search", "astar(pdb(cegar_pattern(pdb_type=bdd),pdb_type=bdd))"])
+    (f"pdb_ceg_exp", ["--search", "astar(pdb(cegar_pattern(use_wildcard_plans=false, pdb_type=explicit), pdb_type=explicit))"]),
+    (f"pdb_ceg_bdd", ["--search", "astar(pdb(cegar_pattern(use_wildcard_plans=false, pdb_type=bdd), pdb_type=bdd))"])
 ]
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("dfdc27241bfc693f377ccff0368ad0b268b72d5d", "version:17.03.23"),
+    ("1dcf8a94616e42d6cee3068881bb3179220d4132", "version:25.03.23"),
 ]
 ATTRIBUTES = [
     "cost",
@@ -62,20 +62,26 @@ ATTRIBUTES = [
     "h_values",
     "initial_h_values",
     project.EVALUATIONS_PER_TIME,
+
+    "PDB_create_time",
+    "PDB_finished_time",
+    "PDB_before_memory",
+    "PDB_after_memory",
+    "PDB_rel_size",
+
 ]
 
 exp = project.FastDownwardExperiment(environment=ENV, revision_cache=REVISION_CACHE)
 for config_nick, config in CONFIGS:
-    for rev, rev_nick in REVS:
-        algo_name = f"{rev_nick}:{config_nick}" if rev_nick else config_nick
-        exp.add_algorithm(
-            algo_name,
-            REPO,
-            rev,
-            config,
-            build_options=BUILD_OPTIONS,
-            driver_options=DRIVER_OPTIONS,
-        )
+    algo_name = f"{config_nick}"
+    exp.add_algorithm(
+        algo_name,
+        REPO,
+        REVS[0][0],
+        config,
+        build_options=BUILD_OPTIONS,
+        driver_options=DRIVER_OPTIONS,
+    )
 exp.add_suite(BENCHMARKS_DIR, SUITE)
 
 exp.add_parser(exp.EXITCODE_PARSER)
@@ -93,7 +99,17 @@ if not project.REMOTE:
     project.add_scp_step(exp, SCP_LOGIN, REMOTE_REPOS_DIR)
 
 project.add_absolute_report(
-    exp, attributes=ATTRIBUTES, filter=[project.add_evaluations_per_time]
+    exp, attributes=ATTRIBUTES
+)
+filters=CustomFilter()
+#attributes=["time_diff_list", "time_diff_sum", "time_diff_bdd_exp_list", "time_diff_bdd_exp_sum", "PDB_create_time", "PDB_finished_time",
+#            "mem_diff_list", "mem_diff_sum","mem_diff_bdd_exp_list", "mem_diff_bdd_exp_sum", "PDB_before_memory", "PDB_after_memory"]
+project.add_absolute_report(
+    exp,
+    attributes=["time_diff", "time_diff_bdd_exp", "PDB_create_time", "PDB_finished_time",
+                "mem_diff", "mem_diff_bdd_exp", "PDB_before_memory", "PDB_after_memory"],
+    filter=[filters.compute_timediff, filters.compute_timediff_bdd_exp, filters.add_timediff, filters.compute_memdiff, filters.compute_memdiff_bdd_exp, filters.add_memdiff],
+    name="time_mem_diff"
 )
 
 exp.run_steps()
