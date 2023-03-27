@@ -47,27 +47,27 @@ class CommonParser(Parser):
 
 def main():
     parser = CommonParser()
-    parser.add_sum_pattern(
+    parser.add_repeated_pattern(
         "PDB_create_time",
         r"\[t=(.+)s, \d+ KB\] PDB: creating...",
         type=float,
     )
-    parser.add_sum_pattern(
+    parser.add_repeated_pattern(
         "PDB_finished_time",
         r"\[t=(.+)s, \d+ KB\] PDB: size=",
         type=float,
     )
-    parser.add_sum_pattern(
+    parser.add_repeated_pattern(
         "PDB_before_memory",
         r"\[t=.+s, (\d+) KB\] PDB: creating...",
         type=int,
     )
-    parser.add_sum_pattern(
+    parser.add_repeated_pattern(
         "PDB_after_memory",
         r"\[t=.+s, (\d+) KB\] PDB: size=",
         type=int,
     )
-    parser.add_sum_pattern(
+    parser.add_repeated_pattern(
         "PDB_rel_size",
         r"\[t=.+s, \d+ KB\] PDB: size=(\d+)",
         type=int,
