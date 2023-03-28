@@ -19,14 +19,10 @@ shared_ptr<PatternDatabase> compute_pdb(
     const shared_ptr<utils::RandomNumberGenerator> &rng,
     bool compute_wildcard_plan) {
     if (pdb_type == PDBType::Explicit) {
-        utils::g_log<<"PDB: creating..."<<endl;
         shared_ptr<PatternDatabaseExplicit> pdb = make_shared<PatternDatabaseExplicit>(task_proxy, pattern, operator_costs, compute_plan, rng, compute_wildcard_plan);
-        utils::g_log<<"PDB: size="<<pdb->get_rel_size()<<endl;
         return pdb;
     } else if (pdb_type == PDBType::BDD) {
-        utils::g_log<<"PDB: creating..."<<endl;
         shared_ptr<PatternDatabaseBDD> pdb = make_shared<PatternDatabaseBDD>(task_proxy, pattern,sym_variables, operator_costs, compute_plan, rng, compute_wildcard_plan);
-        utils::g_log<<"PDB: size="<<pdb->get_rel_size()<<endl;
         return pdb;
     } else {
         return make_shared<PatternDatabaseEVMDD>(task_proxy, pattern, operator_costs, compute_plan, rng, compute_wildcard_plan);
