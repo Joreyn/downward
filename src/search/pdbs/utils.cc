@@ -116,6 +116,20 @@ void dump_pattern_generation_statistics(
     }
 }
 
+void dump_pattern_generation_statistics_fixed(
+    const string &identifier,
+    utils::Duration runtime,
+    const Pattern &pattern,
+    const PatternDatabase &pdb,
+    utils::LogProxy &log) {
+    if (log.is_at_least_normal()) {
+        log << identifier << " pattern: " << pattern << endl;
+        log << identifier << " number of variables: " << pattern.size() << endl;
+        log << identifier << " PDB size: " << pdb.get_rel_size() << endl;
+        log << identifier << " computation time: " << runtime << endl;
+    }
+}
+
 void dump_pattern_collection_generation_statistics(
     const string &identifier,
     utils::Duration runtime,
@@ -128,6 +142,27 @@ void dump_pattern_collection_generation_statistics(
         log << identifier << " total PDB size: "
             << compute_total_pdb_size(
             pci.get_task_proxy(), pattern_collection) << endl;
+        log << identifier << " computation time: " << runtime << endl;
+    }
+}
+
+void dump_pattern_collection_generation_statistics_fixed(
+    const string &identifier,
+    utils::Duration runtime,
+    const shared_ptr<PatternCollection> &patterns,
+    const shared_ptr<PDBCollection> &pdbs,
+    utils::LogProxy &log) {
+    if (log.is_at_least_normal()) {
+        log << identifier << " number of patterns: " << patterns->size()
+            << endl;
+        int total_pdb_size = 0;
+
+        for (const auto &pdb : *pdbs) {
+            total_pdb_size += pdb->get_rel_size();
+        }
+        double average_pdb_size = total_pdb_size / static_cast<double>(pdbs->size());
+        log << identifier << " total PDB size: " << total_pdb_size << endl;
+        log << identifier << " average PDB size: " << average_pdb_size << endl;
         log << identifier << " computation time: " << runtime << endl;
     }
 }

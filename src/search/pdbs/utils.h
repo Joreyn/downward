@@ -53,6 +53,13 @@ extern void dump_pattern_generation_statistics(
     const PatternInformation &pattern_info,
     utils::LogProxy &log);
 
+extern void dump_pattern_generation_statistics_fixed(
+    const std::string &identifier,
+    utils::Duration runtime,
+    const Pattern &pattern,
+    const PatternDatabase &pdb,
+    utils::LogProxy &log);
+
 /*
   Compute and dump the number of patterns, the total size of the corresponding
   PDBs, and the runtime used for computing the collection. All output is
@@ -62,6 +69,13 @@ extern void dump_pattern_collection_generation_statistics(
     const std::string &identifier,
     utils::Duration runtime,
     const PatternCollectionInformation &pci,
+    utils::LogProxy &log);
+
+extern void dump_pattern_collection_generation_statistics_fixed(
+    const std::string &identifier,
+    utils::Duration runtime,
+    const std::shared_ptr<PatternCollection> &patterns,
+    const std::shared_ptr<PDBCollection> &pdbs,
     utils::LogProxy &log);
 
 extern std::string get_rovner_et_al_reference();

@@ -57,8 +57,8 @@ CanonicalPDBs get_canonical_pdbs_from_options(
             log);
     }
 
-    dump_pattern_collection_generation_statistics(
-        "Canonical PDB heuristic", timer(), pattern_collection_info, log);
+    dump_pattern_collection_generation_statistics_fixed(
+        "Canonical PDB heuristic", timer(), patterns, pdbs, log);
     return CanonicalPDBs(pdbs, pattern_cliques);
 }
 
