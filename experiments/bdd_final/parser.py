@@ -47,30 +47,50 @@ class CommonParser(Parser):
 
 def main():
     parser = CommonParser()
-    parser.add_repeated_pattern(
-        "PDB_create_time",
-        r"\[t=(.+)s, \d+ KB\] PDB: creating...",
-        type=float,
+    #cpdbs
+    parser.add_pattern(
+        "cpdbs_number_of_patterns",
+        "Canonical PDB heuristic number of patterns: (\d+)",
+        required=False,
+        type=int
     )
-    parser.add_repeated_pattern(
-        "PDB_finished_time",
-        r"\[t=(.+)s, \d+ KB\] PDB: size=",
-        type=float,
+    parser.add_pattern(
+        "cpdbs_total_pdb_size",
+        "Canonical PDB heuristic total PDB size: (\d+)",
+        required=False,
+        type=int
     )
-    parser.add_repeated_pattern(
-        "PDB_before_memory",
-        r"\[t=.+s, (\d+) KB\] PDB: creating...",
-        type=int,
+    parser.add_pattern(
+        "cpdbs_average_pdb_size",
+        "Canonical PDB heuristic average PDB size: (\d+)",
+        required=False,
+        type=int
     )
-    parser.add_repeated_pattern(
-        "PDB_after_memory",
-        r"\[t=.+s, (\d+) KB\] PDB: size=",
-        type=int,
+    parser.add_pattern(
+        "cpdbs_computation_time",
+        "Canonical PDB heuristic computation time: (.+)s",
+        required=False,
+        type=float
     )
-    parser.add_repeated_pattern(
-        "PDB_rel_size",
-        r"\[t=.+s, \d+ KB\] PDB: size=(\d+)",
-        type=int,
+
+    # pdb
+    parser.add_pattern(
+        "pdb_number_of_variables",
+        "PDB Heuristic number of variables: (\d+)",
+        required=False,
+        type=int
+    )
+    parser.add_pattern(
+        "pdb_size",
+        "PDB Heuristic PDB size: (\d+)",
+        required=False,
+        type=int
+    )
+    parser.add_pattern(
+        "pdb_computation_time",
+        "PDB Heuristic computation time: (.+)s",
+        required=False,
+        type=float
     )
     parser.parse()
 

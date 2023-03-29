@@ -14,8 +14,8 @@ REMOTE_REPOS_DIR = "/infai/seipp/projects"
 REVISION_CACHE = os.environ.get("DOWNWARD_REVISION_CACHE")
 
 if project.REMOTE:
-    SUITE = project.SUITE_OPTIMAL_STRIPS
-    #SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
+    #SUITE = project.SUITE_OPTIMAL_STRIPS
+    SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl"]
     ENV = project.BaselSlurmEnvironment(email="m.fahrni@stud.unibas.ch", partition="infai_2",
     # paths obtained via:
     # module purge
@@ -28,8 +28,8 @@ else:
     SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl", "tetris-opt14-strips:p03-4.pddl"]
     ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
-    (f"pdb_gre_exp", ["--search", "astar(pdb(greedy(pdb_type=explicit), pdb_type=explicit))"]),
-    (f"pdb_gre_bdd", ["--search", "astar(pdb(greedy(pdb_type=bdd), pdb_type=bdd))"])
+    (f"cpdbs_hill_exp", ["--search", "astar(cpdbs(pdb_type=explicit, patterns=hillclimbing(max_time=900, pdb_type=explicit)))"]),
+    (f"cpdbs_hill_bdd", ["--search", "astar(cpdbs(pdb_type=bdd, patterns=hillclimbing(max_time=900, pdb_type=bdd)))"])
 ]
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
@@ -62,9 +62,10 @@ ATTRIBUTES = [
     "h_values",
     "initial_h_values",
     project.EVALUATIONS_PER_TIME,
-    project.PDB_NUMBER_OF_VARIABLES,
-    project.PDB_SIZE,
-    project.PDB_COMPUTATION_TIME
+    project.CPDBS_COMPUTATION_TIME,
+    project.CPDBS_NUMBER_OF_PATTERNS,
+    project.CPDBS_TOTAL_PDB_SIZE,
+    project.CPDBS_AVERAGE_PDB_SIZE
 
 ]
 

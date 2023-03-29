@@ -34,7 +34,7 @@ CONFIGS = [
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("1dcf8a94616e42d6cee3068881bb3179220d4132", "version:25.03.23"),
+    ("9b1aafffd90c1c31e893d2918833bd9416e34a65", "version:28.03.23"),
 ]
 ATTRIBUTES = [
     "cost",
@@ -62,12 +62,11 @@ ATTRIBUTES = [
     "h_values",
     "initial_h_values",
     project.EVALUATIONS_PER_TIME,
+    project.CPDBS_COMPUTATION_TIME,
+    project.CPDBS_NUMBER_OF_PATTERNS,
+    project.CPDBS_TOTAL_PDB_SIZE,
+    project.CPDBS_AVERAGE_PDB_SIZE
 
-    "PDB_create_time",
-    "PDB_finished_time",
-    "PDB_before_memory",
-    "PDB_after_memory",
-    "PDB_rel_size",
 
 ]
 
@@ -100,16 +99,6 @@ if not project.REMOTE:
 
 project.add_absolute_report(
     exp, attributes=ATTRIBUTES
-)
-filters=CustomFilter()
-#attributes=["time_diff_list", "time_diff_sum", "time_diff_bdd_exp_list", "time_diff_bdd_exp_sum", "PDB_create_time", "PDB_finished_time",
-#            "mem_diff_list", "mem_diff_sum","mem_diff_bdd_exp_list", "mem_diff_bdd_exp_sum", "PDB_before_memory", "PDB_after_memory"]
-project.add_absolute_report(
-    exp,
-    attributes=["time_diff", "time_diff_bdd_exp", "PDB_create_time", "PDB_finished_time",
-                "mem_diff", "mem_diff_bdd_exp", "PDB_before_memory", "PDB_after_memory"],
-    filter=[filters.compute_timediff, filters.compute_timediff_bdd_exp, filters.add_timediff, filters.compute_memdiff, filters.compute_memdiff_bdd_exp, filters.add_memdiff],
-    name="time_mem_diff"
 )
 
 exp.run_steps()
