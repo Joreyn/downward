@@ -28,8 +28,8 @@ else:
     SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl", "tetris-opt14-strips:p03-4.pddl"]
     ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
-    (f"cpdbs_sys_exp", ["--search", "astar(cpdbs(pdb_type=explicit, patterns=systematic(pattern_max_size=2, pdb_type=explicit)))"]),
-    (f"cpdbs_sys_bdd", ["--search", "astar(cpdbs(pdb_type=bdd, patterns=systematic(pattern_max_size=2, pdb_type=bdd)))"])
+    (f"cpdbs_hill_200_exp", ["--search", "astar(cpdbs(pdb_type=explicit, patterns=hillclimbing(max_generated_patterns=200, pdb_type=explicit)))"]),
+    (f"cpdbs_hill_200_bdd", ["--search", "astar(cpdbs(pdb_type=bdd, patterns=hillclimbing(max_generated_patterns=200, pdb_type=bdd)))"])
 ]
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
@@ -100,17 +100,16 @@ project.add_absolute_report(
     exp, attributes=ATTRIBUTES
 )
 
-
 exp.add_report(
     project.ScatterPlotReport(
-        attributes=[project.CPDBS_COMPUTATION_TIME],
+        attributes=[project.PDB_COMPUTATION_TIME],
         show_missing=True,
         title="pdb computation time using greedy pattern generator",
         get_category=project.unit_as_category,
         scale="log",
         relative=False,
     ),
-    name="time_sys"
+    name="time_hill200"
 )
 
 exp.add_report(
@@ -122,7 +121,7 @@ exp.add_report(
         scale="log",
         relative=False
     ),
-    name="size_sys"
+    name="size_hill200"
 )
 exp.add_report(
     project.ScatterPlotReport(
@@ -133,7 +132,7 @@ exp.add_report(
         scale="log",
         relative=True
     ),
-    name="size_sys_relative"
+    name="size_hill200_relative"
 )
 
 exp.run_steps()

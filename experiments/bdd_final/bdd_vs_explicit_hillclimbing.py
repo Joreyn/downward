@@ -28,13 +28,13 @@ else:
     SUITE = ["depot:p01.pddl", "grid:prob01.pddl", "gripper:prob01.pddl", "tetris-opt14-strips:p03-4.pddl"]
     ENV = project.LocalEnvironment(processes=2)
 CONFIGS = [
-    (f"cpdbs_hill_exp", ["--search", "astar(cpdbs(pdb_type=explicit, patterns=hillclimbing(max_time=900, pdb_type=explicit)))"]),
-    (f"cpdbs_hill_bdd", ["--search", "astar(cpdbs(pdb_type=bdd, patterns=hillclimbing(max_time=900, pdb_type=bdd)))"])
+    (f"cpdbs_hill_exp", ["--search", "astar(cpdbs(pdb_type=explicit, patterns=hillclimbing(max_generated_patterns=1000, pdb_type=explicit)))"]),
+    (f"cpdbs_hill_bdd", ["--search", "astar(cpdbs(pdb_type=bdd, patterns=hillclimbing(max_generated_patterns=1000, pdb_type=bdd)))"])
 ]
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("9b1aafffd90c1c31e893d2918833bd9416e34a65", "version:28.03.23"),
+    ("86c31ffa58aa19037ffd2cce9ff7c8380a408a21", "version:31.03.23"),
 ]
 ATTRIBUTES = [
     "cost",
@@ -98,6 +98,41 @@ if not project.REMOTE:
 
 project.add_absolute_report(
     exp, attributes=ATTRIBUTES
+)
+
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.CPDBS_COMPUTATION_TIME],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.unit_as_category,
+        scale="log",
+        relative=False,
+    ),
+    name="time_hill"
+)
+
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.CPDBS_TOTAL_PDB_SIZE],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.unit_as_category,
+        scale="log",
+        relative=False
+    ),
+    name="size_hill"
+)
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.CPDBS_TOTAL_PDB_SIZE],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.unit_as_category,
+        scale="log",
+        relative=True
+    ),
+    name="size_hill_relative"
 )
 
 exp.run_steps()
