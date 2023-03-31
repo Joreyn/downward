@@ -114,7 +114,6 @@ namespace pdbs {
             compute_plan_(rng);
         }
         num_nodes=cost_map_add.nodeCount();
-        num_nodes+=cost_map_add.CountLeaves();
     }
 
     //compute plan using BFS (thus using no rng)
