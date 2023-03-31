@@ -345,3 +345,23 @@ def add_absolute_report(exp, *, name=None, outfile=None, **kwargs):
     if not REMOTE:
         exp.add_step(f"open-{name}", subprocess.call, ["xdg-open", outfile])
     exp.add_step(f"publish-{name}", subprocess.call, ["publish", outfile])
+
+
+def domain_as_category(run1, run2):
+    return run1["domain"]
+
+
+def zero_unit_as_category(run1, run2):
+    if run1["domain"] in ["data-network-opt18-strips", "elevators-opt08-strips", "elevators-opt11-strips", "ged-opt14-strips", "openstacks-opt08-adl", "openstacks-opt08-strips", "openstacks-opt11-strips", "openstacks-opt14-strips", "parcprinter-08-strips", "parcprinter-opt11-strips", "pegsol-08-strips", "pegsol-opt11-strips", "petri-net-alignment-opt18-strips", "settlers-opt18-adl", "sokoban-opt08-strips", "sokoban-opt11-strips", "spider-opt18-strips"]:
+        return "containing zero-cost actions"
+    elif run1["domain"] in ["airport", "assembly", "barman-opt14-strips", "blocks", "caldera-opt18-adl", "childsnack-opt14-strips", "depot", "driverlog", "freecell", "grid", "gripper", "hiking-opt14-strips", "logistics00", "logistics98", "maintenance-opt14-adl", "miconic", "miconic-fulladl", "miconic-simpleadl", "movie", "mprime", "mystery", "nomystery-opt11-strips", "nurikabe-opt18-adl", "openstacks", "optical-telegraphs", "organic-synthesis-opt18-strips", "parking-opt11-strips", "parking-opt14-strips", "pathways", "philosophers", "pipesworld-notankage", "pipesworld-tankage", "psr-large", "psr-middle", "psr-small", "rovers", "satellite", "schedule", "snake-opt18-strips", "storage", "termes-opt18-strips", "tidybot-opt11-strips", "tidybot-opt14-strips", "tpp", "trucks", "visitall-opt11-strips", "visitall-opt14-strips", "zenotravel"]:
+        return "unit-cost actions"
+    else:
+        return "neither"
+
+
+def unit_as_category(run1, run2):
+    if run1["domain"] in ["airport", "assembly", "barman-opt14-strips", "blocks", "caldera-opt18-adl", "childsnack-opt14-strips", "depot", "driverlog", "freecell", "grid", "gripper", "hiking-opt14-strips", "logistics00", "logistics98", "maintenance-opt14-adl", "miconic", "miconic-fulladl", "miconic-simpleadl", "movie", "mprime", "mystery", "nomystery-opt11-strips", "nurikabe-opt18-adl", "openstacks", "optical-telegraphs", "organic-synthesis-opt18-strips", "parking-opt11-strips", "parking-opt14-strips", "pathways", "philosophers", "pipesworld-notankage", "pipesworld-tankage", "psr-large", "psr-middle", "psr-small", "rovers", "satellite", "schedule", "snake-opt18-strips", "storage", "termes-opt18-strips", "tidybot-opt11-strips", "tidybot-opt14-strips", "tpp", "trucks", "visitall-opt11-strips", "visitall-opt14-strips", "zenotravel"]:
+        return "domain with unit-cost actions"
+    else:
+        return "domain without unit-cost actions"

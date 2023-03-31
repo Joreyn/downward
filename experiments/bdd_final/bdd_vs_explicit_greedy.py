@@ -34,7 +34,7 @@ CONFIGS = [
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("9b1aafffd90c1c31e893d2918833bd9416e34a65", "version:28.03.23"),
+    ("86c31ffa58aa19037ffd2cce9ff7c8380a408a21", "version:31.03.23"),
 ]
 ATTRIBUTES = [
     "cost",
@@ -99,4 +99,49 @@ project.add_absolute_report(
     exp, attributes=ATTRIBUTES
 )
 
+
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.PDB_COMPUTATION_TIME],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.unit_as_category,
+        scale="log",
+        relative=False,
+    ),
+    name="time_greedy"
+)
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.PDB_COMPUTATION_TIME],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.domain_as_category,
+        scale="log",
+        relative=False,
+    ),
+    name="time_greedy_by_domain"
+)
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.PDB_SIZE],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.unit_as_category,
+        scale="log",
+        relative=False
+    ),
+    name="size_greedy"
+)
+exp.add_report(
+    project.ScatterPlotReport(
+        attributes=[project.PDB_SIZE],
+        show_missing=True,
+        title="pdb computation time using greedy pattern generator",
+        get_category=project.unit_as_category,
+        scale="log",
+        relative=True
+    ),
+    name="size_greedy_relative"
+)
 exp.run_steps()
