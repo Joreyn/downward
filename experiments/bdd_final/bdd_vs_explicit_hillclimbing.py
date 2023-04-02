@@ -9,7 +9,7 @@ from custom_filter import CustomFilter
 REPO = project.get_repo_base()
 BENCHMARKS_DIR = os.environ["DOWNWARD_BENCHMARKS"]
 SCP_LOGIN = "fahmat01@login-infai.scicore.unibas.ch"
-REMOTE_REPOS_DIR = "/infai/seipp/projects"
+REMOTE_REPOS_DIR = "/infai/fahmat01"
 # If REVISION_CACHE is None, the default ./data/revision-cache is used.
 REVISION_CACHE = os.environ.get("DOWNWARD_REVISION_CACHE")
 
@@ -34,7 +34,7 @@ CONFIGS = [
 BUILD_OPTIONS = []
 DRIVER_OPTIONS = ["--overall-time-limit", "30m"]
 REVS = [
-    ("86c31ffa58aa19037ffd2cce9ff7c8380a408a21", "version:31.03.23"),
+    ("f4eecb1c59bf3ff04446a2f407baa7d6b1367fa5", "version:01.04.23"),
 ]
 ATTRIBUTES = [
     "cost",
